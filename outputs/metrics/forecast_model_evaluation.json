@@ -1,39 +1,72 @@
 {
-  "Baseline_Naive_Persistence": {
-    "MAE_usd": 5382979.0,
-    "RMSE_usd": 7107358.72,
-    "MAPE_pct": 11.85
-  },
-  "Baseline_6Month_Moving_Average": {
-    "MAE_usd": 5467871.91,
-    "RMSE_usd": 7445578.77,
-    "MAPE_pct": 11.92
-  },
   "Baseline_Seasonal_Naive": {
     "MAE_usd": 1655444.24,
     "RMSE_usd": 2129019.28,
-    "MAPE_pct": 4.08
+    "MAPE_pct": 4.08,
+    "MASE": 0.61
   },
   "Holt_Winters_Exponential_Smoothing": {
     "MAE_usd": 5097148.14,
     "RMSE_usd": 6163093.16,
-    "MAPE_pct": 11.55
+    "MAPE_pct": 11.55,
+    "MASE": 1.89
   },
   "SARIMAX_1_1_1": {
     "MAE_usd": 5339027.28,
     "RMSE_usd": 6853154.05,
-    "MAPE_pct": 11.86
+    "MAPE_pct": 11.86,
+    "MASE": 1.98
   },
-  "Holt_Winters_Rolling_CV": {
+  "Baseline_Naive_Persistence": {
+    "MAE_usd": 5382979.0,
+    "RMSE_usd": 7107358.72,
+    "MAPE_pct": 11.85,
+    "MASE": 1.99
+  },
+  "Baseline_6Month_Moving_Average": {
+    "MAE_usd": 5467871.91,
+    "RMSE_usd": 7445578.77,
+    "MAPE_pct": 11.92,
+    "MASE": 2.02
+  },
+  "Baseline_Seasonal_Naive_Rolling_CV": {
+    "MAE_usd": 1968273.22,
+    "RMSE_usd": 2316816.15,
+    "MAPE_pct": 4.94,
+    "MASE": 0.75,
+    "n_origins": 6,
+    "forecast_horizon_months": 3
+  },
+  "Holt_Winters_Exponential_Smoothing_Rolling_CV": {
     "MAE_usd": 4528362.5,
     "RMSE_usd": 5023129.64,
     "MAPE_pct": 10.45,
-    "n_origins": 6
+    "MASE": 1.76,
+    "n_origins": 6,
+    "forecast_horizon_months": 3
   },
-  "SARIMAX_Rolling_CV": {
+  "SARIMAX_1_1_1_Rolling_CV": {
     "MAE_usd": 4363541.26,
     "RMSE_usd": 5000343.97,
     "MAPE_pct": 9.91,
-    "n_origins": 6
+    "MASE": 1.7,
+    "n_origins": 6,
+    "forecast_horizon_months": 3
+  },
+  "Baseline_6Month_Moving_Average_Rolling_CV": {
+    "MAE_usd": 4180044.31,
+    "RMSE_usd": 4832366.0,
+    "MAPE_pct": 9.49,
+    "MASE": 1.63,
+    "n_origins": 6,
+    "forecast_horizon_months": 3
+  },
+  "Baseline_Naive_Persistence_Rolling_CV": {
+    "MAE_usd": 4597669.07,
+    "RMSE_usd": 5267023.08,
+    "MAPE_pct": 10.45,
+    "MASE": 1.79,
+    "n_origins": 6,
+    "forecast_horizon_months": 3
   }
 }

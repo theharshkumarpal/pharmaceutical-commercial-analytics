@@ -1,15 +1,15 @@
 # Independent Audit Report: Pharmaceutical Commercial Performance Platform
 
-**Auditor:** Independent Senior Data Analytics Reviewer & Pharmaceutical Commercial Consultant  
-**Audit Scope:** Full repository source code, generated transactional data, SQLite star schema, SQL queries, Python analytical pipelines, machine learning models, and consulting documentation.  
-**Audit Date:** October 2026  
-**Status:** Audit Completed — Verification, Corrections & Defensibility Confirmed  
+**Auditor:** Independent Senior Data Analytics Reviewer & Pharmaceutical Commercial Consultant
+**Audit Scope:** Full repository source code, generated transactional data, SQLite star schema, SQL queries, Python analytical pipelines, machine learning models, and consulting documentation.
+**Audit Date:** October 2026
+**Status:** Audit Completed — Verification, Corrections & Defensibility Confirmed
 
 ---
 
 ## 1. Executive Summary & Verdict
 
-This independent audit evaluated the entire codebase against top-tier life sciences commercial analytics standards (e.g., Blue Matter Consulting Analytics Associate role). 
+This independent audit evaluated the analytical codebase, financial models, data integrity checks, and documentation against life sciences commercial analytics best practices.
 
 ### Overall Audit Verdict: **DEFENSIBLE WITH DOCUMENTED METHODOLOGY**
 - **Data Engineering & Schema Integrity:** **100% Verified**. The Kimball star schema (`fact_sales` + 7 dimensions) enforces strict primary/foreign key constraints, contains zero orphaned foreign keys, zero duplicate transactions, and properly models reverse logistics returns as economic deductions rather than filtering them out.
@@ -77,11 +77,12 @@ All documentation has been updated to reflect the exact, unadjusted empirical fa
 
 - **Train/Test Temporal Split:** Evaluated in `src/revenue_forecasting.py`. 30 months training (Jan 2023–Jun 2025), 6 months test (Jul 2025–Dec 2025). **Zero future data leakage.**
 - **Model Benchmark Results (Test Horizon H2 2025):**
-  - *Baseline Naive Persistence:* MAPE 11.85% | MAE $5,382,979 | RMSE $7,107,358
-  - *Baseline 6-Month Moving Average:* MAPE 11.92% | MAE $5,467,872 | RMSE $7,445,579
-  - *SARIMAX(1,1,1):* MAPE 11.86% | MAE $5,339,027 | RMSE $6,853,154
-  - *Holt-Winters Exponential Smoothing:* **MAPE 11.55% | MAE $5,097,148 | RMSE $6,163,093**
-- **Statistical Defensibility:** Holt-Winters achieves the lowest error across all three metrics (MAPE, MAE, and RMSE), outperforming both baselines and SARIMAX. The 11.55% error rate is primarily driven by Q4 seasonal inventory loading in October–December 2025 ($47.3M/mo vs ~$37.5M baseline trend), which is realistic in pharmaceutical commercial supply chains.
+  - *Baseline Seasonal Naive (12-Month Lag):* **MAPE 4.08% | MASE 0.61 | MAE $1,655,444 | RMSE $2,129,019**
+  - *Holt-Winters Exponential Smoothing:* **MAPE 11.55% | MASE 1.89 | MAE $5,097,148 | RMSE $6,163,093**
+  - *SARIMAX(1,1,1):* MAPE 11.86% | MASE 1.98 | MAE $5,339,027 | RMSE $6,853,154
+  - *Baseline Naive Persistence:* MAPE 11.85% | MASE 1.99 | MAE $5,382,979 | RMSE $7,107,358
+  - *Baseline 6-Month Moving Average:* MAPE 11.92% | MASE 2.02 | MAE $5,467,872 | RMSE $7,445,579
+- **Statistical Defensibility & Model Comparison:** The seasonal naive benchmark achieves the lowest error (4.08% MAPE, 0.61 MASE) on the 6-month test horizon due to recurring annual purchasing cyclicality in the synthetic commercial series. Among trend-parameterized statistical models, Holt-Winters achieves 11.55% MAPE on the fixed test set and 10.45% in rolling-origin cross-validation, providing smooth multi-period forward projections.
 
 ---
 

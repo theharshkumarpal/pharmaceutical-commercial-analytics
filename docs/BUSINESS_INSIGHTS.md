@@ -1,8 +1,8 @@
 # Pharmaceutical Commercial Business Insights & Strategic Recommendations
 
-**Target Audience:** Commercial Leadership, VP of Market Access, Franchise Brand Leads, Life Sciences Consulting Partners (Blue Matter Consulting)  
-**Analytical Basis:** Executed SQL & Python analytics on 28,500 commercial transactions ($1.245 Billion Net Recognized Sales)  
-**Date:** October 2026 (Audited & Verified)  
+**Target Audience:** Commercial Leadership, VP of Market Access, Franchise Brand Leads, Commercial Analytics Teams
+**Analytical Basis:** Executed SQL & Python analytics on 28,500 commercial transactions ($1.245 Billion Net Recognized Sales)
+**Date:** October 2026 (Audited & Verified)
 
 ---
 
@@ -106,7 +106,7 @@ Aggregated distributor volume concentration (`sql/06_customer_analysis.sql`) and
 
 ---
 
-## Module 4: Sales Force Effectiveness (SFE) & Headcount Normalization
+## Module 4: Headcount-Normalized Commercial Team Productivity
 
 ### 1. Business Question
 *Are the sales teams genuinely differentiated in productivity, or does revenue simply follow territory headcount?*

@@ -1,10 +1,10 @@
 -- ====================================================================
 -- sql/08_sales_force_analysis.sql
--- Sales Force Effectiveness (SFE), Headcount Normalization & Team Productivity
+-- Headcount-Normalized Sales Productivity & Commercial Team Analytics
 -- ====================================================================
 
 -- 1. Sales Representative Individual Scorecard
-SELECT 
+SELECT
     r.sales_rep_id,
     r.sales_rep_name,
     r.sales_team,
@@ -26,7 +26,7 @@ ORDER BY total_net_sales_usd DESC;
 -- 2. Commercial Team Performance with Headcount Normalization
 -- Normalizing team comparisons by representative count ensures fair benchmarking
 WITH team_metrics AS (
-    SELECT 
+    SELECT
         r.sales_team,
         COUNT(DISTINCT r.sales_rep_id) AS team_headcount,
         COUNT(DISTINCT f.customer_key) AS total_accounts_covered,
@@ -37,7 +37,7 @@ WITH team_metrics AS (
     JOIN dim_sales_rep r ON f.sales_rep_key = r.sales_rep_key
     GROUP BY r.sales_team
 )
-SELECT 
+SELECT
     sales_team,
     team_headcount,
     total_accounts_covered,
@@ -53,7 +53,7 @@ FROM team_metrics
 ORDER BY productivity_revenue_per_rep_usd DESC;
 
 -- 3. Sales Force Quarterly Revenue Trend
-SELECT 
+SELECT
     r.sales_team,
     d.quarter_name,
     ROUND(SUM(f.net_sales_usd), 2) AS quarterly_net_sales_usd,

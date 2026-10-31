@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS fact_sales (
     net_sales_usd           NUMERIC(12,2) NOT NULL,
     cogs_usd                NUMERIC(12,2) NOT NULL,
     gross_margin_usd        NUMERIC(12,2) NOT NULL,
+    reconciliation_status   VARCHAR(20) NOT NULL DEFAULT 'PASS',
     return_reason           VARCHAR(100)
 );
 

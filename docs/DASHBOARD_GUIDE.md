@@ -1,10 +1,11 @@
 # Power BI Commercial Dashboard Architecture & Implementation Guide
 
-**Dashboard Suite:** Global Pharmaceutical Commercial Performance & Market Analytics  
-**Implementation Status:** DAX Measures Library (`dashboards/powerbi/dax_measures.txt`) and 6-Page Executive Wireframe Specification. *(Note: Binary `.pbix` authoring requires Windows Power BI Desktop; this guide provides the complete blueprint for loading the Star Schema and applying the measures).*  
-**Target User Persona:** VP of Commercial Strategy, Franchise Brand Lead, Life Sciences Consulting Teams (Blue Matter)  
-**Layout Standard:** 16:9 widescreen (1920 × 1080 px), Slate Navy & Life Sciences Teal consulting palette.  
-**Data Source:** Star Schema connection to `data/processed/pharma_commercial.db` or PostgreSQL data warehouse.  
+**Dashboard Suite:** Global Pharmaceutical Commercial Performance & Market Analytics
+**Implementation Status:** DAX Measures Library (`dashboards/powerbi/dax_measures.txt`) and 6-Page Executive Wireframe Specification.
+**Deliverables Notice:** **No binary Power BI (`.pbix`) file is included in this repository.** This guide provides the complete blueprint and measures for loading the Star Schema into Power BI Desktop.
+**Target User Persona:** VP of Commercial Strategy, Franchise Brand Leads, Commercial Operations Analysts
+**Layout Standard:** 16:9 widescreen (1920 × 1080 px), Slate Navy & Life Sciences Teal consulting palette.
+**Data Source:** Star Schema connection to `data/processed/pharma_commercial.db` or PostgreSQL data warehouse.
 
 ---
 

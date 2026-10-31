@@ -41,24 +41,27 @@ def run_preprocessing():
     execution_date = pipeline_start.strftime("%Y-%m-%d %H:%M:%S")
     logger.info("Pipeline started at %s", execution_date)
     logger.info("Reading raw data from %s...", RAW_PATH)
-    
+
     df_raw = pd.read_csv(RAW_PATH)
     logger.info("Ingested %d raw records", len(df_raw))
-    
-    # 1. Validation & Cleansing
-    clean_df, audit = validate_commercial_data(df_raw)
-    
-    # Drop audit-trail columns before saving (originals are for internal validation only)
-    export_cols = [c for c in clean_df.columns if not c.endswith("_original")]
-    
+
+    # 1. Validation & Cleansing with Row-Level Reconciliation Ledger
+    clean_df, reconciliation_ledger, audit = validate_commercial_data(df_raw)
+
+    # Save complete row-level reconciliation ledger
+    ledger_path = os.path.join(BASE_DIR, "outputs", "reports", "financial_reconciliation_ledger.csv")
+    os.makedirs(os.path.dirname(ledger_path), exist_ok=True)
+    reconciliation_ledger.to_csv(ledger_path, index=False)
+    logger.info("Saved complete reconciliation ledger (%d records) to %s", len(reconciliation_ledger), ledger_path)
+
     # Ensure processed directory exists
     os.makedirs(os.path.dirname(PROCESSED_CSV), exist_ok=True)
-    clean_df[export_cols].to_csv(PROCESSED_CSV, index=False)
-    logger.info("Saved %d cleaned sales records to %s", len(clean_df), PROCESSED_CSV)
-    
+    clean_df.to_csv(PROCESSED_CSV, index=False)
+    logger.info("Saved %d cleaned sales records (with preserved originals) to %s", len(clean_df), PROCESSED_CSV)
+
     # 2. Generate Data Quality Report Markdown (dynamic execution date)
     execution_date_display = pipeline_start.strftime("%Y-%m-%d")
-    
+
     # Compute financial summary
     positive_sales = clean_df[clean_df['net_units'] > 0]
     gross_total = positive_sales['gross_sales_usd'].sum()
@@ -67,13 +70,14 @@ def run_preprocessing():
     gtn_rate = net_total / gross_total * 100 if gross_total > 0 else 0.0
     net_units_total = clean_df['net_units'].sum()
     n_markets = clean_df['country_name'].nunique()
-    
+
     report_content = f"""# Data Quality & Validation Report: Commercial Sales Pipeline
 
-**Execution Date:** {execution_date_display}  
-**Pipeline Runtime:** {(datetime.now() - pipeline_start).total_seconds():.1f} seconds  
-**Source Dataset:** `data/raw/pharma_commercial_sales_raw.csv`  
-**Processed Target:** `data/processed/cleaned_sales.csv` & `data/processed/pharma_commercial.db`  
+**Execution Date:** {execution_date_display}
+**Pipeline Runtime:** {(datetime.now() - pipeline_start).total_seconds():.1f} seconds
+**Source Dataset:** `data/raw/pharma_commercial_sales_raw.csv`
+**Processed Target:** `data/processed/cleaned_sales.csv` & `data/processed/pharma_commercial.db`
+**Reconciliation Ledger:** `outputs/reports/financial_reconciliation_ledger.csv`
 
 ---
 
@@ -81,27 +85,40 @@ def run_preprocessing():
 
 A validation protocol was executed over the commercial transactional records. The pipeline strictly maintains reverse logistics integrity (identifying and categorizing returns as commercial deductions rather than silently dropping negative rows), normalizes inconsistent geographic and customer entities, eliminates exact duplicate rows, and verifies gross-to-net financial calculations.
 
-**Financial values are recalculated from unit-level source data.** Original pre-recalculation values are preserved during validation for audit traceability (columns suffixed `_original`).
+**Row-Level Status & Financial Traceability:**
+- Every record is audited and classified into an explicit status: `PASS`, `CORRECTED`, `FLAGGED`, or `REJECTED`.
+- Original pre-recalculation financial values are preserved (`gross_sales_usd_original`, `return_value_usd_original`, `net_sales_usd_original`, `gross_margin_usd_original`).
+- A comprehensive row-level reconciliation ledger is exported to [`outputs/reports/financial_reconciliation_ledger.csv`](../outputs/reports/financial_reconciliation_ledger.csv).
 
 ---
 
-## 2. Validation Metrics & Record Ledger
+## 2. Row-Level Reconciliation Status Summary
 
-| Validation Rule / Step | Records Affected | Pipeline Action Taken | Business Justification |
+| Reconciliation Status | Record Count | % of Ingested | Description & Criteria |
 | :--- | :--- | :--- | :--- |
-| **Total Ingested Records** | **{audit['total_records_ingested']:,}** | Ingested | Complete raw ingestion. |
-| **Duplicate Transactions** | **{audit['duplicate_records_dropped']:,}** | Removed | Eliminated duplicate transaction IDs to prevent revenue double-counting. |
-| **Invalid / Unparseable Dates** | **{audit['invalid_dates']:,}** | Filtered / Verified | Validated ISO-8601 formatting (`YYYY-MM-DD`). |
-| **Zero Quantity Entries** | **{audit['zero_quantity_records']:,}** | Dropped | Zero-quantity rows convey no volume or economic transfer. |
-| **Customer Returns & Reversals** | **{audit['returns_identified']:,}** | **Preserved & Tagged** | Reverse logistics preserved with negative unit counts, return amounts, and reason codes. |
-| **Country Inconsistent Casing/Spacing** | **{audit['country_casing_standardized']:,}** | Standardized | Stripped whitespace and title-cased country names (`United States`, `Germany`, etc.). |
-| **Missing Customer Names** | **{audit['missing_customer_name_imputed']:,}** | Imputed via ID | Imputed customer names from known customer registry via `customer_id`. |
-| **Gross-to-Net Reconciliation Mismatch** | **{audit['unmatched_gross_to_net_fixed']:,}** | Reconciled | Enforced `Gross Sales = Units × WAC` and `Net Sales = Units × Net Price`. Max discrepancy: ${audit.get('max_net_discrepancy_usd', 0):.2f}. |
-| **Final Clean Analytical Records** | **{audit['clean_records_retained']:,}** | **Loaded to OLAP Core** | 100% verified, referentially sound transactions. |
+| **PASS** | **{audit['status_pass_count']:,}** | **{audit['status_pass_count']/audit['total_records_ingested']*100:.2f}%** | 100% mathematically consistent; zero anomalies or discrepancies. |
+| **CORRECTED** | **{audit['status_corrected_count']:,}** | **{audit['status_corrected_count']/audit['total_records_ingested']*100:.2f}%** | Valid transactions with formatting (country casing) or imputed customer names reconciled. |
+| **FLAGGED** | **{audit['status_flagged_count']:,}** | **{audit['status_flagged_count']/audit['total_records_ingested']*100:.2f}%** | Retained in analytical core, but flagged for business audit (high-value return or discount outlier). |
+| **REJECTED** | **{audit['status_rejected_count']:,}** | **{audit['status_rejected_count']/audit['total_records_ingested']*100:.2f}%** | Dropped due to duplicate transaction ID, unparseable date, zero quantity, or invalid pricing. |
+| **Total Ingested** | **{audit['total_records_ingested']:,}** | **100.00%** | Raw ERP billing transactions ingested. |
+| **Clean Retained** | **{audit['clean_records_retained']:,}** | **{audit['clean_records_retained']/audit['total_records_ingested']*100:.2f}%** | Loaded into Star Schema OLAP database (`fact_sales`). |
 
 ---
 
-## 3. Financial Integrity Audit
+## 3. Independent Financial Metric Validation
+
+All four commercial financial dimensions were validated independently against unit-level transaction parameters:
+
+| Commercial Financial Metric | Expected Formulation | Anomalies Identified | Reconciliation Action |
+| :--- | :--- | :--- | :--- |
+| **Gross Invoiced Sales** | `Units Ordered × Unit WAC Price` (or $0.00 for returns) | {audit['independent_gross_sales_corrected']} records | Verified & reconciled against WAC price book. |
+| **Customer Returns** | `Units Returned × Unit Net Price` (or $0.00 for standard sales) | {audit['independent_returns_corrected']} records | Verified & reconciled against contract net price. |
+| **Net Recognized Revenue** | `Gross Sales - Returns - Contract Discounts` | {audit['independent_net_sales_corrected']} records | Verified & reconciled against transaction terms. |
+| **Gross Margin** | `Net Sales - Cost of Goods Sold (COGS)` | {audit['independent_gross_margin_corrected']} records | Verified & reconciled against formulation cost basis. |
+
+---
+
+## 4. Financial Integrity Audit Totals
 
 - **Gross Sales Realized (USD):** ${gross_total:,.2f}
 - **Customer Returns / Reversals (USD):** ${returns_total:,.2f}
@@ -117,8 +134,8 @@ A validation protocol was executed over the commercial transactional records. Th
     logger.info("Generated Data Quality Report at %s", QUALITY_REPORT_MD)
 
     # 3. Create Star Schema in SQLite Database
-    build_sqlite_star_schema(clean_df[export_cols])
-    
+    build_sqlite_star_schema(clean_df)
+
     elapsed = (datetime.now() - pipeline_start).total_seconds()
     logger.info("Pipeline completed in %.1f seconds", elapsed)
 
@@ -136,15 +153,15 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     """
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
-        
+
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    
+
     # Enable foreign keys
     cur.execute("PRAGMA foreign_keys = ON;")
-    
+
     logger.info("Building Star Schema in SQLite: %s...", DB_PATH)
-    
+
     # 1. dim_date
     df = df.copy()
     df["date_dt"] = pd.to_datetime(df["transaction_date"])
@@ -159,7 +176,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     unique_dates["day_of_month"] = unique_dates["date_dt"].dt.day
     unique_dates["day_of_week"] = unique_dates["date_dt"].dt.day_name()
     unique_dates["is_weekend"] = unique_dates["date_dt"].dt.weekday.isin([5, 6]).astype(int)
-    
+
     dim_date = unique_dates[[
         "date_key", "transaction_date", "year", "quarter", "quarter_name",
         "month", "month_name", "year_month", "day_of_month", "day_of_week", "is_weekend"
@@ -168,7 +185,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     cur.execute("CREATE UNIQUE INDEX idx_dim_date_key ON dim_date(date_key);")
     cur.execute("CREATE INDEX idx_dim_date_year_month ON dim_date(year_month);")
     logger.info("dim_date: %d unique dates loaded", len(dim_date))
-    
+
     # 2. dim_product
     dim_product = df[[
         "product_id", "product_name", "generic_name", "therapeutic_area", "dosage_form", "unit_wac_price_usd"
@@ -178,7 +195,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     cur.execute("CREATE UNIQUE INDEX idx_dim_product_key ON dim_product(product_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_product_id ON dim_product(product_id);")
     logger.info("dim_product: %d products loaded", len(dim_product))
-    
+
     # 3. dim_geography
     dim_geography = df[[
         "country_code", "country_name", "region", "currency"
@@ -195,7 +212,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     cur.execute("CREATE UNIQUE INDEX idx_dim_geography_key ON dim_geography(geography_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_geography_code ON dim_geography(country_code);")
     logger.info("dim_geography: %d geographies loaded", len(dim_geography))
-    
+
     # 4. dim_customer
     dim_customer = df[[
         "customer_id", "customer_name", "customer_type", "country_code"
@@ -205,7 +222,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     cur.execute("CREATE UNIQUE INDEX idx_dim_customer_key ON dim_customer(customer_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_customer_id ON dim_customer(customer_id);")
     logger.info("dim_customer: %d customers loaded", len(dim_customer))
-    
+
     # 5. dim_distributor
     dim_distributor = df[[
         "distributor_id", "distributor_name"
@@ -218,7 +235,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     cur.execute("CREATE UNIQUE INDEX idx_dim_distributor_key ON dim_distributor(distributor_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_distributor_id ON dim_distributor(distributor_id);")
     logger.info("dim_distributor: %d distributors loaded", len(dim_distributor))
-    
+
     # 6. dim_sales_rep
     dim_sales_rep = df[[
         "sales_rep_id", "sales_rep_name", "sales_team", "country_code"
@@ -228,7 +245,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     cur.execute("CREATE UNIQUE INDEX idx_dim_sales_rep_key ON dim_sales_rep(sales_rep_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_sales_rep_id ON dim_sales_rep(sales_rep_id);")
     logger.info("dim_sales_rep: %d sales reps loaded", len(dim_sales_rep))
-    
+
     # 7. dim_channel
     dim_channel = df[[
         "sales_channel_id", "sales_channel_name"
@@ -238,7 +255,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     cur.execute("CREATE UNIQUE INDEX idx_dim_channel_key ON dim_channel(channel_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_channel_id ON dim_channel(sales_channel_id);")
     logger.info("dim_channel: %d channels loaded", len(dim_channel))
-    
+
     # 8. fact_sales (Map surrogate keys)
     fact_df = df.copy()
     fact_df["date_key"] = pd.to_datetime(fact_df["transaction_date"]).dt.strftime("%Y%m%d").astype(int)
@@ -248,17 +265,17 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     fact_df = fact_df.merge(dim_distributor[["distributor_id", "distributor_key"]], on="distributor_id", how="left")
     fact_df = fact_df.merge(dim_sales_rep[["sales_rep_id", "sales_rep_key"]], on="sales_rep_id", how="left")
     fact_df = fact_df.merge(dim_channel[["sales_channel_id", "channel_key"]], on="sales_channel_id", how="left")
-    
+
     fact_sales = fact_df[[
         "transaction_id", "date_key", "product_key", "geography_key",
         "customer_key", "distributor_key", "sales_rep_key", "channel_key",
         "units_ordered", "units_returned", "net_units",
         "unit_wac_price_usd", "contract_discount_pct", "unit_net_price_usd",
         "gross_sales_usd", "return_value_usd", "net_sales_usd",
-        "cogs_usd", "gross_margin_usd", "return_reason"
+        "cogs_usd", "gross_margin_usd", "reconciliation_status", "return_reason"
     ]].reset_index(drop=True)
     fact_sales["sales_fact_id"] = range(1, len(fact_sales) + 1)
-    
+
     fact_sales.to_sql("fact_sales", conn, if_exists="replace", index=False)
     cur.execute("CREATE UNIQUE INDEX idx_fact_sales_id ON fact_sales(sales_fact_id);")
     cur.execute("CREATE INDEX idx_fact_sales_date ON fact_sales(date_key);")
@@ -268,7 +285,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     cur.execute("CREATE INDEX idx_fact_sales_distributor ON fact_sales(distributor_key);")
     cur.execute("CREATE INDEX idx_fact_sales_rep ON fact_sales(sales_rep_key);")
     cur.execute("CREATE INDEX idx_fact_sales_channel ON fact_sales(channel_key);")
-    
+
     conn.commit()
     conn.close()
     logger.info("Star Schema database built and indexed: %d fact rows, 7 dimensions", len(fact_sales))

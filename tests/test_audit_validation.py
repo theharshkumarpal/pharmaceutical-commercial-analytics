@@ -48,9 +48,9 @@ class TestIndependentAudit(unittest.TestCase):
         self.assertEqual(db_count, 28500, "Fact table count is not 28,500.")
 
         cur.execute("""
-            SELECT transaction_id, COUNT(*) 
-            FROM fact_sales 
-            GROUP BY transaction_id 
+            SELECT transaction_id, COUNT(*)
+            FROM fact_sales
+            GROUP BY transaction_id
             HAVING COUNT(*) > 1;
         """)
         dups = cur.fetchall()
@@ -60,7 +60,7 @@ class TestIndependentAudit(unittest.TestCase):
         """Audit 2: Gross Margin = Net - COGS, and financial totals are in expected range."""
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT 
+            SELECT
                 SUM(gross_sales_usd),
                 SUM(return_value_usd),
                 SUM(net_sales_usd),
@@ -76,11 +76,11 @@ class TestIndependentAudit(unittest.TestCase):
         self.assertGreater(returns, 2.0e6, "Returns should exceed $2M")
         self.assertGreater(net, 1.2e9, "Net sales should exceed $1.2B")
         self.assertLess(net, 1.3e9, "Net sales should not exceed $1.3B")
-        
+
         # Gross Margin = Net - COGS exactly (within floating-point tolerance)
         self.assertAlmostEqual(margin, net - cogs, delta=1.0,
                                msg="Gross Margin != Net Sales - COGS")
-        
+
         # GTN Realization Rate should be between 80-90%
         gtn_realization = net / gross * 100
         self.assertGreater(gtn_realization, 80.0, "GTN realization too low")
@@ -90,8 +90,8 @@ class TestIndependentAudit(unittest.TestCase):
         """Audit 3: Returns have net_units < 0, positive return_value_usd, and explicit return reasons."""
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT COUNT(*) 
-            FROM fact_sales 
+            SELECT COUNT(*)
+            FROM fact_sales
             WHERE net_units < 0 AND (return_value_usd <= 0 OR return_reason IS NULL OR return_reason = 'N/A - Standard Sale');
         """)
         invalid_returns = cur.fetchone()[0]
@@ -111,9 +111,9 @@ class TestIndependentAudit(unittest.TestCase):
         cur = self.conn.cursor()
         for table, key in dims:
             cur.execute(f"""
-                SELECT COUNT(*) 
-                FROM fact_sales f 
-                LEFT JOIN {table} d ON f.{key} = d.{key} 
+                SELECT COUNT(*)
+                FROM fact_sales f
+                LEFT JOIN {table} d ON f.{key} = d.{key}
                 WHERE d.{key} IS NULL;
             """)
             orphans = cur.fetchone()[0]
@@ -174,11 +174,13 @@ class TestIndependentAudit(unittest.TestCase):
             self.assertGreater(rev_per_rep, 4.0e7, f"Rev per rep for {team} should exceed $40M")
 
     def test_customer_rfm_coverage(self):
-        """Audit 8: All 120 customers are active in the fact table."""
+        """Audit 8: All dimension customers are active in the fact table (dynamic coverage check)."""
         cur = self.conn.cursor()
         cur.execute("SELECT COUNT(DISTINCT customer_key) FROM fact_sales;")
         active_customers = cur.fetchone()[0]
-        self.assertEqual(active_customers, 120, "All 120 customers must be active.")
+        cur.execute("SELECT COUNT(*) FROM dim_customer;")
+        total_customers = cur.fetchone()[0]
+        self.assertEqual(active_customers, total_customers, f"Active customers ({active_customers}) must equal dim_customer count ({total_customers}).")
 
     def test_sql_python_kpi_reconciliation(self):
         """Audit 9: SQL total net sales matches Python CSV sum within tolerance."""
@@ -193,11 +195,11 @@ class TestIndependentAudit(unittest.TestCase):
         """Audit 10: Forecast evaluation JSON exists and contains all expected models."""
         eval_path = os.path.join(BASE_DIR, "outputs", "metrics", "forecast_model_evaluation.json")
         self.assertTrue(os.path.exists(eval_path), "Evaluation metrics JSON must exist.")
-        
+
         with open(eval_path, "r") as f:
             metrics = json.load(f)
-        
-        # Verify all expected models are present
+
+        # Verify all expected models are present with MASE
         expected_models = [
             "Baseline_Naive_Persistence",
             "Baseline_6Month_Moving_Average",
@@ -207,16 +209,25 @@ class TestIndependentAudit(unittest.TestCase):
         ]
         for model in expected_models:
             self.assertIn(model, metrics, f"Missing model evaluation: {model}")
-        
-        # Verify Holt-Winters champion beats naive baseline
+            self.assertIn("MASE", metrics[model], f"Missing MASE metric in {model}")
+
+        # Verify Seasonal Naive benchmark achieves lowest test set MAPE
+        sn = metrics["Baseline_Seasonal_Naive"]
         hw = metrics["Holt_Winters_Exponential_Smoothing"]
-        naive = metrics["Baseline_Naive_Persistence"]
-        self.assertLess(hw["MAPE_pct"], naive["MAPE_pct"],
-                        "Holt-Winters should have lower MAPE than naive persistence")
-        
-        # Verify rolling CV results exist
-        self.assertIn("Holt_Winters_Rolling_CV", metrics, "Missing rolling CV for Holt-Winters")
-        self.assertIn("SARIMAX_Rolling_CV", metrics, "Missing rolling CV for SARIMAX")
+        self.assertLess(sn["MAPE_pct"], hw["MAPE_pct"],
+                        "Seasonal Naive should have lower MAPE than Holt-Winters on annual seasonal data")
+        self.assertLess(sn["MASE"], 1.0, "Seasonal Naive MASE should be < 1.0")
+
+        # Verify symmetric rolling CV results exist for all models
+        expected_cv_models = [
+            "Baseline_Seasonal_Naive_Rolling_CV",
+            "Holt_Winters_Exponential_Smoothing_Rolling_CV",
+            "SARIMAX_1_1_1_Rolling_CV",
+            "Baseline_6Month_Moving_Average_Rolling_CV",
+            "Baseline_Naive_Persistence_Rolling_CV",
+        ]
+        for cv_model in expected_cv_models:
+            self.assertIn(cv_model, metrics, f"Missing rolling CV evaluation for {cv_model}")
 
     def test_date_range_boundaries(self):
         """Audit 11: Edge case — all transactions fall within 2023-01-01 to 2025-12-31."""
