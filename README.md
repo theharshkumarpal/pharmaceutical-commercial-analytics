@@ -14,8 +14,8 @@ Built for **Commercial Analytics, Life Sciences Advisory, and Global Brand Strat
 ## 1. Executive Summary & Commercial KPIs
 
 > **Data Disclosure & Synthetic Provenance:** The commercial sales dataset is **synthetic transaction-level data** generated via Python (`src/generate_commercial_data.py`, fixed seed `42`) to model multi-market launches, contract discounting, and reverse logistics. All figures are generated from modeled assumptions and do not represent actual pharmaceutical manufacturer revenue, verified market share, or proprietary secondary audit data (e.g., IQVIA MIDAS/NPA or Symphony Health PHAST).
-> - **Accounting & COGS Mechanics:** Cost of Goods Sold (COGS) is retained directly from the source dataset (`cogs_usd_original`) rather than independently reconstructed from bill-of-materials master tables for each transaction. When COGS is unpopulated, an industry heuristic fallback of 15% of WAC is applied (`units_ordered * WAC * 0.15`).
-> - **Synthetic Accounting Assumptions:** Returns are credited at contract net price (`unit_net_price_usd`) without double-counting discounts, and reverse logistics events credit inventory back via negative COGS under the assumption of usable return restocking.
+> - **Accounting & COGS Mechanics:** Cost of Goods Sold (COGS) is retained directly from the source dataset (`cogs_usd_original`) rather than independently reconstructed from bill-of-materials master tables for each transaction. When COGS is unpopulated, an explicitly configurable synthetic assumption of 15% of WAC is applied (`cogs_fallback_pct=0.15`), calculating COGS on sales via `units_ordered * WAC * cogs_fallback_pct` and crediting inventory restocking on returns via `-units_returned * WAC * cogs_fallback_pct`.
+> - **Synthetic Accounting Assumptions:** Returns are credited at contract net price (`unit_net_price_usd`) without double-counting discounts, and reverse logistics events credit inventory back via negative COGS under the operational assumption of usable return restocking.
 
 > **Power BI Deliverables Disclosure:** **No binary Power BI `.pbix` file is included in this repository.** Power BI assets consist of a complete 17-measure DAX library in [`dashboards/powerbi/dax_measures.txt`](dashboards/powerbi/dax_measures.txt) and a comprehensive 6-page visual wireframe specification guide in [`docs/DASHBOARD_GUIDE.md`](docs/DASHBOARD_GUIDE.md).
 
@@ -26,7 +26,7 @@ The platform models **28,500 commercial transactions** across **6 global markets
 | **Gross Invoiced Sales** | **$1,480,438,365.00** | Top-line customer orders evaluated at Wholesale Acquisition Cost (WAC). |
 | **Customer Returns / Reversals** | **$2,772,950.45** | Reverse logistics refunds (batch expiration, shipping damage, cold-chain excursion). |
 | **Contract Discounts & Rebates** | **$232,655,989.02** | Institutional contracting, PBM rebates, and statutory discounts (15.71% discount burden). |
-| **Net Recognized Revenue** | **$1,245,009,425.53** | Simulated net sales realized (`Gross - Returns - Discounts`). |
+| **Net Recognized Revenue** | **$1,245,009,425.53** | Simulated net sales realized (`Gross - Contract Discounts - Returns`). |
 | **Gross-to-Net (GTN) Realization** | **84.10%** | Overall commercial portfolio net revenue capture rate. |
 | **Cost of Goods Sold (COGS)** | **$219,723,424.00** | Direct API formulation, sterile manufacturing, and packaging costs. |
 | **Gross Margin** | **$1,025,286,001.53 (82.35%)** | Product margin supporting commercial operations and R&D reinvestment. |
@@ -81,12 +81,17 @@ The relational database is architected as a Kimball star schema (`fact_sales` su
 - **The Analytical Challenge:** Countries launched at different times (US/DE/UK: 36 months; FR: 30 months; JP: 24 months; CA: 18 months).
 - **The Normalized Common-Period (FY2025):** When all markets operated for a full 12 months, **Japan ($63.12M) and France ($53.91M) generated higher annualized sales than the mature UK market ($51.20M)**, highlighting expansion market velocity.
 
-### C. Institutional Customer RFM Segmentation
-- **Tier 1 Strategic Key Accounts (Champions, 37 accounts):** High frequency, high spend ($458.7M total net revenue). Dedicated Key Account Managers assigned.
-- **Tier 3 At-Risk High-Value Accounts (18 accounts):** High historical spend ($211.3M) with purchase recency gaps > 45 days, requiring targeted field retention campaigns.
+### C. Institutional Customer RFM Segmentation & Clustering
+- **Five Business RFM Tiers:** Accounts are segmented into 5 operational tiers based on composite RFM scores:
+  - *Tier 1 Strategic Key Accounts (Champions, 37 accounts):* High frequency, high spend ($458.7M total net revenue). Dedicated Key Account Managers assigned.
+  - *Tier 2 Loyal Growth Accounts (20 accounts):* Consistent recurring ordering patterns ($248.3M net sales).
+  - *Tier 3 At-Risk High-Value Accounts (18 accounts):* High historical spend ($211.3M) with purchase recency gaps > 45 days, requiring targeted field retention campaigns.
+  - *Tier 4 Promising Developing Accounts (12 accounts):* Moderate spend ($119.5M) showing recent ordering acceleration.
+  - *Tier 5 Low-Engagement Accounts (33 accounts):* Low frequency, tail spend ($207.2M).
+- **Four Unsupervised K-Means Clusters:** Separately, unsupervised K-Means clustering ($k=4$) on standardized log-transformed features (`recency`, `frequency`, `monetary`) groups institutional accounts by behavioral geometry, distinguishing high-frequency low-ticket purchasers from bulk tender purchasers.
 
-### D. Headcount-Normalized Sales Productivity
-- **Headcount Normalization:** Performance is normalized by sales representative headcount across 4 commercial teams of 6 reps each.
+### D. Headcount-Normalized Commercial Sales Productivity
+- **Headcount Normalization:** Performance is normalized by sales representative headcount across 4 commercial teams of 6 reps each ($/rep). This is a commercial productivity metric, not an end-to-end Sales Force Effectiveness (SFE) model; it does not claim detailing-call activity, territory market potential, or quota attainment optimization.
 - **Finding:** Team Alpha (CNS North) generated $322.00M (**$53.67M/rep**) and Team Gamma (Specialty Oncology) generated $318.82M (**$53.14M/rep**), with specialty oncology achieving comparable productivity from substantially higher average transaction values ($37,000+ vs ~$15,000 in CNS).
 
 ### E. Defensible Time-Series Revenue Forecasting
@@ -161,7 +166,7 @@ Pharmaceutical-Commercial-Analytics/
 │   │   ├── commercial_summary_metrics.json
 │   │   └── forecast_model_evaluation.json
 │   └── reports/                               # Tabular audit ledgers and projections (CSV)
-│       ├── financial_reconciliation_ledger.csv# Row-level audit ledger (PASS, CORRECTED, FLAGGED, REJECTED)
+│       ├── financial_reconciliation_ledger.csv# Row-level audit ledger (financial_reconciliation_status, data_quality_status, cogs_source_type, reconciliation_status)
 │       ├── customer_rfm_segmentation.csv
 │       ├── forecast_fy2026_projections.csv
 │       ├── forecast_test_set_comparison.csv
@@ -182,7 +187,9 @@ Pharmaceutical-Commercial-Analytics/
 ├── tests/                                     # AUTOMATED TEST SUITES
 │   ├── test_analytics.py                      # Core commercial analytics suite (8 tests)
 │   ├── test_audit_validation.py               # Independent audit & edge-case suite (13 tests)
-│   └── test_data_validation_unit.py           # Independent unit tests for malformed inputs & repeatability (6 tests)
+│   ├── test_data_validation_unit.py           # Unit validation, status separation, COGS & waterfall tests (19 tests)
+│   ├── test_forecasting_hardening.py          # Forecasting robustness, missing months & fit failure tests (4 tests)
+│   └── test_sql_etl_consistency.py            # SQL-only ETL vs Python ETL exact consistency test (1 test)
 │
 ├── requirements.txt                           # Python dependencies
 └── README.md                                  # Project overview documentation
@@ -218,7 +225,7 @@ python3 src/visualizations.py
 ```bash
 python3 -m unittest discover tests -v
 ```
-*Result: 27 tests run, 100% passed (zero duplicates, 0 orphaned keys, exact financial reconciliation, independent metric validation, edge-case bounds, and out-of-sample forecast validation).*
+*Result: 45 tests run, 100% passed (zero duplicates, 0 orphaned keys, exact financial reconciliation, status separation, COGS fallback and return restocking, discount waterfall, SQL/Python ETL consistency, and out-of-sample forecast validation).*
 
 ---
 

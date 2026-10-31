@@ -33,11 +33,17 @@ CREATE TABLE IF NOT EXISTS stg_commercial_sales (
     contract_discount_pct   NUMERIC(5,2),
     unit_net_price_usd      NUMERIC(10,2),
     gross_sales_usd         NUMERIC(12,2),
+    contract_discount_usd   NUMERIC(12,2),
     return_value_usd        NUMERIC(12,2),
     net_sales_usd           NUMERIC(12,2),
     cogs_usd                NUMERIC(12,2),
-    gross_margin_usd        NUMERIC(12,2),
-    return_reason           VARCHAR(100)
+    gross_margin_usd                NUMERIC(12,2),
+    reconciliation_status           VARCHAR(20),
+    financial_reconciliation_status VARCHAR(20),
+    data_quality_status             VARCHAR(20),
+    anomaly_flag                    VARCHAR(50),
+    cogs_source_type                VARCHAR(20),
+    return_reason                   VARCHAR(100)
 );
 
 -- 2. Populate dim_date from distinct dates
@@ -133,8 +139,9 @@ INSERT INTO fact_sales (
     customer_key, distributor_key, sales_rep_key, channel_key,
     units_ordered, units_returned, net_units,
     unit_wac_price_usd, contract_discount_pct, unit_net_price_usd,
-    gross_sales_usd, return_value_usd, net_sales_usd,
-    cogs_usd, gross_margin_usd, return_reason
+    gross_sales_usd, contract_discount_usd, return_value_usd, net_sales_usd,
+    cogs_usd, gross_margin_usd, reconciliation_status, financial_reconciliation_status,
+    data_quality_status, anomaly_flag, cogs_source_type, return_reason
 )
 SELECT 
     s.transaction_id,
@@ -152,10 +159,16 @@ SELECT
     s.contract_discount_pct,
     s.unit_net_price_usd,
     s.gross_sales_usd,
+    s.contract_discount_usd,
     s.return_value_usd,
     s.net_sales_usd,
     s.cogs_usd,
     s.gross_margin_usd,
+    s.reconciliation_status,
+    s.financial_reconciliation_status,
+    s.data_quality_status,
+    s.anomaly_flag,
+    s.cogs_source_type,
     s.return_reason
 FROM stg_commercial_sales s
 JOIN dim_date d ON strftime('%Y%m%d', s.transaction_date) = CAST(d.date_key AS TEXT)

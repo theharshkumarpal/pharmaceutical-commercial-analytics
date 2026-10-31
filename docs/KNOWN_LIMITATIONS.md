@@ -26,15 +26,18 @@
 - **Limitation:** The customer base consists of 120 institutional healthcare accounts (IDNs, Academic Medical Centers, Retail Chains).
 - **Impact:** In commercial pharma, institutional purchasing behavior is governed by multi-year master service agreements (MSAs) and formulary tier placements. While our RFM segmentation accurately captures purchasing recency and order frequency, it does not include qualitative contracting negotiations, 340B ceiling price eligibility, or formulary exclusion lists.
 
-### 2.3 Sales Force Productivity Normalization
-- **Limitation:** The commercial team productivity module normalizes performance by headcount (revenue per representative), but territory geographic land area and underlying disease prevalence per territory are not explicitly modeled in the raw transaction tables.
+### 2.3 Commercial Sales Productivity vs. Full SFE Modeling
+- **Scope & Modeling Boundary:** The commercial team productivity module normalizes performance strictly by sales representative headcount (net revenue per representative, $/rep). It is not an end-to-end Sales Force Effectiveness (SFE) model and explicitly does not claim physician call planning, territory market potential estimation, quota attainment modeling, detailing-call efficiency, or causal prescription attribution.
 - **Consulting Caveat:** While revenue per rep provides a substantially better benchmark than raw team sales, territory realignment in advisory practice also incorporates local patient epidemiology and physician detailing call-frequency metrics.
 
 ### 2.4 Cost of Goods Sold (COGS) & Gross Margin Accounting
 - **Preservation from Source Data:** In the validation and preprocessing pipeline (`src/data_validation.py`), Cost of Goods Sold (`cogs_usd`) is **retained directly from the source dataset** (`cogs_usd_original`) rather than independently reconstructed for each individual transaction. In real-world enterprise architectures, product-level standard unit manufacturing costs reside in separate enterprise resource planning (ERP) master cost tables; the transactional sales feed does not include real-time manufacturing bill-of-materials lookups.
-- **15% WAC Fallback Assumption:** If `cogs_usd` is absent or completely unpopulated in an ingested dataset, the validation module applies an industry-standard heuristic fallback:
-  $$\text{expected\_cogs} = \text{units\_ordered} \times \text{unit\_wac\_price\_usd} \times 0.15$$
-  This 15% proxy reflects typical pharmaceutical manufacturing, packaging, and supply-chain cost ratios (10%–20% of list price) for branded specialty therapies. Gross margin is then verified as $\text{expected\_margin} = \text{expected\_net} - \text{expected\_cogs}$.
+- **Configurable Synthetic Fallback Assumption:** If `cogs_usd` is absent or unpopulated in an ingested dataset, the validation module applies an explicitly configurable synthetic assumption (defaulting to 15% of WAC, `cogs_fallback_pct=0.15`):
+  - For positive sale transactions:
+    $$\text{expected\_cogs} = \text{units\_ordered} \times \text{unit\_wac\_price\_usd} \times \text{cogs\_fallback\_pct}$$
+  - For reverse logistics return events ($\text{net\_units} < 0$):
+    $$\text{expected\_cogs} = -\text{units\_returned} \times \text{unit\_wac\_price\_usd} \times \text{cogs\_fallback\_pct}$$
+  This 15% fallback is an explicitly declared synthetic assumption, not an industry-standard benchmark. This formulation ensures inventory restocking credits are preserved consistently across both sales and returns even when source COGS values are absent. Gross margin is then verified as $\text{expected\_margin} = \text{expected\_net} - \text{expected\_cogs}$.
 
 ### 2.5 Synthetic-Data Accounting Assumptions for Reverse Logistics
 - **Return-Credit Valuation at Net Contract Price:** In the synthetic dataset generator (`src/generate_commercial_data.py`), customer return records represent discrete reverse logistics credit memos issued at the customer channel's **contract net price** ($\text{unit\_net\_price\_usd} = \text{WAC} \times (1 - \text{discount})$) rather than list WAC. In commercial practice, credit memos reflect the net price invoiced on the originating order. In this synthetic dataset, returns are generated with channel-specific contract discount rates rather than dynamically joining against historical parent invoice IDs.

@@ -55,36 +55,54 @@ To prevent distortion from asynchronous market entry (US, DE, UK operating for 3
 - **All-Time Comparisons:** Documented with explicit active coverage month denominators.
 - **Common-Period Benchmark (FY2025):** Evaluates all 6 markets across the identical 12-month calendar window (Jan 1, 2025 – Dec 31, 2025) when all country infrastructures were fully operational.
 
-### 3.4 Institutional Customer RFM Segmentation
-Evaluates 120 institutional healthcare accounts along three dimensions:
-- **Recency ($R$):** Days elapsed between the account's last purchase and the end-of-study date (`2025-12-31`).
-- **Frequency ($F$):** Total count of distinct purchasing transactions.
-- **Monetary ($M$):** Total net recognized sales realized from the account.
-Accounts are scored using quartile ranks ($1$ to $4$) and segmented into:
-1. *Tier 1: Strategic Key Accounts (Champions)*
-2. *Tier 2: Loyal Growth Accounts*
-3. *Tier 3: At-Risk High-Value Accounts*
-4. *Tier 4: Promising Developing Accounts*
-5. *Tier 5: Low-Engagement Accounts*
+### 3.4 Institutional Customer Segmentation: Business RFM Tiers vs. K-Means Clusters
+The platform implements two complementary customer segmentation methodologies:
+1. **Five Business RFM Tiers (Rule-Based Scored Quartiles):**
+   - *Tier 1: Strategic Key Accounts (Champions, 37 accounts):* Top-quartile frequency and spend; core relationship partners.
+   - *Tier 2: Loyal Growth Accounts (20 accounts):* Consistent ordering cadence with expanding volume.
+   - *Tier 3: At-Risk High-Value Accounts (18 accounts):* High historical monetary spend with recency gaps > 45 days.
+   - *Tier 4: Promising Developing Accounts (12 accounts):* Recent purchasers with moderate transaction volume.
+   - *Tier 5: Low-Engagement Accounts (33 accounts):* Low frequency, low volume purchasing accounts.
+2. **Four Unsupervised K-Means Clusters (`src/customer_segmentation.py`):**
+   - Accounts are log-transformed (`log1p`) and standardized using `StandardScaler` on Recency, Frequency, and Monetary features before K-Means clustering ($k=4$).
+   - K-Means clusters identify empirical behavioral archetypes: High-Volume Institutional Champions, Mid-Tier Regional Hospitals, Specialized Infusion Clinics, and Infrequent Long-Tail Facilities.
+
+### 3.5 Sales Team Headcount-Normalized Productivity
+- **Methodology:** Total recognized net sales per commercial team is normalized by active sales representative headcount:
+  $$ \text{Productivity per Representative} = \frac{\sum \text{Team Net Sales}}{\text{Team Active Headcount}} $$
+- **Scope & Modeling Boundary:** This metric provides headcount-normalized commercial productivity across the 4 specialized business teams (6 reps per team). It is an exploratory productivity benchmark, **not** a complete Sales Force Effectiveness (SFE) model; it does not model physician detailing call frequency, local disease epidemiology, territory market access potential, or quota attainment.
 
 ---
 
 ## 4. Time-Series Revenue Forecasting
 
-### 4.1 Temporal Validation Split
-- **Total Series Length:** 36 monthly observations (2023-01 through 2025-12).
-- **Training Set:** First 30 months (2023-01 through 2025-06).
-- **Test Set (Out-of-Sample):** Final 6 months (2025-07 through 2025-12). Zero data leakage from the test set into model training.
+### 4.1 Temporal Validation Split & Series Integrity
+- **Total Series Length:** 36 continuous monthly observations (2023-01 through 2025-12).
+- **Monthly Continuity Check:** Validates that no calendar months are omitted between start and end dates.
+- **Fixed Training Set:** First 30 months (2023-01 through 2025-06).
+- **Fixed Test Set (Out-of-Sample):** Final 6 months (2025-07 through 2025-12). Zero future data leakage into model training or feature preparation.
 
-### 4.2 Benchmark Model Suite
-1. **Naive Persistence:** $\hat{Y}_{t+h} = Y_T$ (Baseline 1).
-2. **Rolling 6-Month Moving Average:** $\hat{Y}_{t+h} = \frac{1}{6} \sum_{i=0}^5 Y_{T-i}$ (Baseline 2).
-3. **SARIMAX(1,1,1):** Auto-regressive integrated moving average.
-4. **Holt-Winters Exponential Smoothing:** Damped additive trend without seasonal component (`trend="add", damped_trend=True, seasonal=None`).
+### 4.2 Benchmark & Statistical Model Suite
+1. **Seasonal Naive Benchmark (12-Month Lag):** $\hat{Y}_{t+h} = Y_{t+h-12}$ (Baseline 1).
+2. **Holt-Winters Exponential Smoothing:** Damped additive trend without seasonal component (`trend="add", damped_trend=True, seasonal=None`).
+3. **SARIMAX(1,1,1):** Auto-regressive integrated moving average with exogenous parameterization.
+4. **Rolling 6-Month Moving Average:** $\hat{Y}_{t+h} = \frac{1}{6} \sum_{i=0}^5 Y_{T-i}$ (Baseline 2).
+5. **Naive Persistence:** $\hat{Y}_{t+h} = Y_T$ (Baseline 3).
 
-### 4.3 Evaluation Metrics & Test-Set Interpretation
+### 4.3 Evaluation Metrics & MASE Formulation
 - **Mean Absolute Error (MAE):** $\frac{1}{n} \sum |Y_t - \hat{Y}_t|$
 - **Root Mean Squared Error (RMSE):** $\sqrt{\frac{1}{n} \sum (Y_t - \hat{Y}_t)^2}$
 - **Mean Absolute Percentage Error (MAPE):** $\frac{100\%}{n} \sum \left| \frac{Y_t - \hat{Y}_t}{Y_t} \right|$
+- **Mean Absolute Scaled Error (MASE, Hyndman & Koehler, 2006):**
+  $$ \text{MASE} = \frac{\text{MAE}_{\text{test}}}{\frac{1}{T-1} \sum_{t=2}^{T} |Y_t - Y_{t-1}|} $$
+  The scaling denominator is computed **strictly in-sample on the training series**, measuring whether the evaluated model outperforms a one-step naive forecast on the training data ($\text{MASE} < 1.0$ indicates superior performance).
 
-> **Important Analytical Note on Forecast Accuracy:** The reported **11.55% MAPE** represents an empirical backtest evaluation on a specific six-month out-of-sample test horizon (H2 2025). It is not an unconditional guarantee of future predictive accuracy, as real-world pharmaceutical demand is subject to regulatory interventions, patent expirations, loss of exclusivity (LOE), and payer formulary shifts.
+### 4.4 Symmetric Rolling-Origin Cross-Validation
+To verify performance stability across multiple economic regimes:
+- **Design:** Evaluates all 5 models over 6 expanding historical origins ($N=6$) with an identical 3-month forecast horizon ($H=3$).
+- **Fit Failure Tracking:** Explicitly records `fit_success_count` and `fit_failure_count` per candidate; convergence warnings or fit errors are logged rather than silently replaced.
+
+### 4.5 Qualified Model Evaluation & Synthetic Seasonality Finding
+- **Empirical Results:** On this dataset, **Baseline Seasonal Naive achieves the lowest error** on both the fixed test horizon (**4.08% MAPE | 0.61 MASE | RMSE $2.13M**) and in rolling-origin cross-validation (**4.94% Avg MAPE | 0.75 Avg MASE | Avg RMSE $2.32M**).
+- **Synthetic Data Nuance:** The data generator deliberately introduces a Q4 commercial purchasing surge (15%–35% volume increase simulating year-end hospital/wholesaler channel loading). Because the synthetic dataset exhibits strong 12-month periodicity, Seasonal Naive empirically outperforms trend-extrapolation models over a 12-month historical lookback.
+- **Role of Statistical Models:** While Seasonal Naive is empirically superior for 12-month lookbacks, parameterized models (Holt-Winters at 11.55% test MAPE and SARIMAX at 11.86% test MAPE) remain essential for forward projections beyond historical data where lag lookups cannot project secular growth or patent transitions.

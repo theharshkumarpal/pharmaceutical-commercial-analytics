@@ -15,7 +15,7 @@ In life sciences commercial consulting, commercial analytics evaluates:
 2. **Portfolio & Brand Strategy:** ABC/Pareto classification, brand lifecycle, volume vs. value contribution, and therapeutic mix.
 3. **Geographic & Market Access Performance:** Unequal date coverage reconciliation, common-period market growth, and geographic concentration.
 4. **Account & Channel Dynamics:** Health Systems / Hospitals vs. Retail Chains vs. Specialty Pharmacies; distributor dependency (McKesson, AmerisourceBergen/Cencora, Cardinal Health) and RFM customer segmentation.
-5. **Sales Force Effectiveness (SFE):** Territory alignment, representative productivity, headcount-normalized team revenue, and quota tracking.
+5. **Sales-Force Productivity:** Commercial team productivity and headcount-normalized revenue per representative (not a full SFE model with detailing call activity or quota attainment optimization).
 
 The platform architecture is built around:
 - **Commercial Analytics Core:** An enterprise-grade, transaction-level dataset spanning multi-country, multi-channel pharmaceutical sales with real-world distribution dynamics (unequal date windows, return rates, pricing variations, customer tiers, and sales rep territories) modeled in a Kimball star schema (`fact_sales` + 7 dimensions).
@@ -65,7 +65,7 @@ To enable end-to-end commercial analytics matching top-tier consulting standards
 | **Geographic Comparisons** | Averaging total revenue across countries with 36 months vs. 18 months of data. | Implement strict **Common-Period Comparisons** (e.g., LTM or FY2025) and report CAGR only where time horizon is identical. |
 | **Product Prioritization** | Arbitrary top-5 ranking without concentration analysis. | Formal **ABC / Pareto cumulative contribution analysis** (80% / 15% / 5%). |
 | **Customer Valuation** | Basic total revenue grouping without behavioral frequency. | **RFM Segmentation** (Recency, Frequency, Monetary) classifying accounts into Champions, Loyal, At-Risk, and Inactive. |
-| **Sales Force Productivity** | Attributing high revenue solely to individual rep capability. | Territory and headcount normalization: Revenue per Rep, quota attainment, and territory market potential. |
+| **Sales Force Productivity** | Attributing high revenue solely to individual rep capability or unnormalized totals. | Headcount-normalized commercial revenue per representative across dedicated teams. |
 | **Forecasting** | Overfitting deep learning models on short monthly time series. | Defensible time-series forecasting using SARIMA / Exponential Smoothing and Holt-Winters with rolling train/test splits, evaluating on MAE, RMSE, and MAPE. |
 
 ---
