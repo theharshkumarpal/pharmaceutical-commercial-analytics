@@ -9,6 +9,11 @@
     "RMSE_usd": 7445578.77,
     "MAPE_pct": 11.92
   },
+  "Baseline_Seasonal_Naive": {
+    "MAE_usd": 1655444.24,
+    "RMSE_usd": 2129019.28,
+    "MAPE_pct": 4.08
+  },
   "Holt_Winters_Exponential_Smoothing": {
     "MAE_usd": 5097148.14,
     "RMSE_usd": 6163093.16,
@@ -18,5 +23,17 @@
     "MAE_usd": 5339027.28,
     "RMSE_usd": 6853154.05,
     "MAPE_pct": 11.86
+  },
+  "Holt_Winters_Rolling_CV": {
+    "MAE_usd": 4528362.5,
+    "RMSE_usd": 5023129.64,
+    "MAPE_pct": 10.45,
+    "n_origins": 6
+  },
+  "SARIMAX_Rolling_CV": {
+    "MAE_usd": 4363541.26,
+    "RMSE_usd": 5000343.97,
+    "MAPE_pct": 9.91,
+    "n_origins": 6
   }
 }

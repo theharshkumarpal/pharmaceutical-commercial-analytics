@@ -8,8 +8,12 @@ Generates comprehensive statistical summaries and outputs metrics to outputs/met
 import os
 import json
 import sqlite3
+import logging
+from datetime import datetime
 import pandas as pd
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, "data", "processed", "pharma_commercial.db")
@@ -65,6 +69,7 @@ def run_eda():
     """
     df = pd.read_sql_query(query, conn)
     conn.close()
+    logger.info("Loaded %d records from star schema for EDA", len(df))
     
     # Financial KPI summary
     total_gross = float(df[df["net_units"] > 0]["gross_sales_usd"].sum())
@@ -76,6 +81,7 @@ def run_eda():
     total_txns = len(df)
     
     metrics = {
+        "execution_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "dataset_summary": {
             "total_transactions": total_txns,
             "total_net_units": total_units,
@@ -93,21 +99,25 @@ def run_eda():
             "net_recognized_sales_usd": round(total_net, 2),
             "cogs_usd": round(total_cogs, 2),
             "gross_margin_usd": round(total_margin, 2),
-            "gtn_realization_pct": round(total_net / total_gross * 100, 2),
-            "gross_margin_pct": round(total_margin / total_net * 100, 2),
-            "avg_transaction_value_usd": round(total_net / total_txns, 2),
+            "gtn_realization_pct": round(total_net / total_gross * 100, 2) if total_gross > 0 else 0.0,
+            "gross_margin_pct": round(total_margin / total_net * 100, 2) if total_net > 0 else 0.0,
+            "avg_transaction_value_usd": round(total_net / total_txns, 2) if total_txns > 0 else 0.0,
         },
         "product_contributions": df.groupby("product_name")["net_sales_usd"].sum().sort_values(ascending=False).to_dict(),
         "geographic_contributions": df.groupby("country_name")["net_sales_usd"].sum().sort_values(ascending=False).to_dict(),
         "channel_contributions": df.groupby("sales_channel_name")["net_sales_usd"].sum().sort_values(ascending=False).to_dict(),
         "therapeutic_area_contributions": df.groupby("therapeutic_area")["net_sales_usd"].sum().sort_values(ascending=False).to_dict(),
+        "synthetic_data_disclosure": "All figures are derived from reproducible synthetic data (seed 42). They do not represent actual pharmaceutical manufacturer revenue.",
     }
     
     out_file = os.path.join(METRICS_DIR, "commercial_summary_metrics.json")
     with open(out_file, "w") as f:
         json.dump(metrics, f, indent=2)
-    print(f"Saved EDA statistical summary metrics to {out_file}")
+    logger.info("Saved EDA statistical summary metrics to %s", out_file)
+    logger.info("Financial KPIs: Gross=$%.2fM, Net=$%.2fM, GTN=%.2f%%",
+                total_gross / 1e6, total_net / 1e6, total_net / total_gross * 100)
     return metrics
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
     run_eda()

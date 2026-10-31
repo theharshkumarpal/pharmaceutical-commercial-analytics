@@ -1,4 +1,5 @@
 {
+  "execution_timestamp": "2026-10-31 12:13:13",
   "dataset_summary": {
     "total_transactions": 28500,
     "total_net_units": 4898450,
@@ -49,5 +50,6 @@
     "CNS / Psychiatry": 974293001.46,
     "Oncology": 234261744.92,
     "Immunology": 36454679.15
-  }
+  },
+  "synthetic_data_disclosure": "All figures are derived from reproducible synthetic data (seed 42). They do not represent actual pharmaceutical manufacturer revenue."
 }

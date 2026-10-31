@@ -1,6 +1,6 @@
 # Pharmaceutical Commercial Analytics Methodology
 
-**Target Role:** Life Sciences Commercial Analytics Associate / Strategy Consultant (Blue Matter Consulting)  
+**Domain Focus:** Life Sciences Commercial Analytics & Strategic Advisory  
 **Methodological Standard:** Industry-standard Gross-to-Net (GTN) Revenue Accounting, Kimball Star Schema Dimensional Modeling, and Defensible Forecasting.  
 
 ---

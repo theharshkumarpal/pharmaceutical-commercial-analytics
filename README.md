@@ -88,11 +88,15 @@ The relational database is architected as a Kimball-style star schema (`fact_sal
 ### E. Defensible Time-Series Revenue Forecasting
 - **Strict Out-of-Sample Split:** Train on first 30 months (Jan 2023–Jun 2025), Test on final 6 months (Jul 2025–Dec 2025). Zero data leakage.
 - **Model Benchmark (6-Month Test Set):**
+  - *Baseline Seasonal Naive (12-Month Lag):* **MAPE 4.08% | RMSE $2.13M** (captures annual cyclicality)
+  - *Champion Classical Model: Holt-Winters Exponential Smoothing (Damped Additive Trend):* **MAPE 11.55% | RMSE $6.16M**
+  - *SARIMAX(1,1,1):* MAPE 11.86% | RMSE $6.85M
   - *Baseline Naive Persistence:* MAPE 11.85% | RMSE $7.11M
   - *Baseline 6-Month Moving Average:* MAPE 11.92% | RMSE $7.45M
-  - *SARIMAX(1,1,1):* MAPE 11.86% | RMSE $6.85M
-  - **Champion: Holt-Winters Exponential Smoothing (Damped Additive Trend):** **MAPE 11.55% | RMSE $6.16M** (six-month test set result).
-- **Evaluation & Model Selection:** The champion Holt-Winters model utilizes a damped additive trend with no seasonal component (`trend="add"`, `damped_trend=True`, `seasonal=None`). The six-month out-of-sample MAPE of 11.55% represents a modest improvement over the 11.85% naive persistence baseline, effectively capturing growth momentum while avoiding overfitting on a 36-month series.
+- **Rolling-Origin Cross-Validation (6 Expanding Origins):**
+  - *SARIMAX (Rolling CV):* **MAPE 9.91% | RMSE $5.00M**
+  - *Holt-Winters (Rolling CV):* **MAPE 10.45% | RMSE $5.02M**
+- **Evaluation & Model Selection:** The Holt-Winters model utilizes a damped additive trend with no seasonal component (`trend="add"`, `damped_trend=True`, `seasonal=None`). The seasonal naive benchmark demonstrates strong annual cyclicality, while rolling-origin CV confirms that both SARIMAX (9.91%) and Holt-Winters (10.45%) maintain robust generalization error across multiple forecast horizons without overfitting.
 
 ---
 
@@ -103,7 +107,7 @@ Pharmaceutical-Commercial-Analytics/
 │
 ├── data/
 │   ├── raw/
-│   │   └── pharma_commercial_sales_raw.csv    # 28,525 raw transactional records
+│   │   └── pharma_commercial_sales_raw.csv    # Synthetic data generated locally via src/generate_commercial_data.py (excluded from Git)
 │   └── processed/
 │       ├── cleaned_sales.csv                  # 28,500 cleansed, verified transactions
 │       └── pharma_commercial.db               # SQLite database with Star Schema
@@ -125,7 +129,7 @@ Pharmaceutical-Commercial-Analytics/
 │   ├── data_preprocessing.py                  # Pipeline orchestrator & star schema builder
 │   ├── eda.py                                 # Statistical profiling and KPI extraction
 │   ├── customer_segmentation.py               # RFM quartile scoring and K-Means clustering
-│   ├── revenue_forecasting.py                 # Out-of-sample forecasting (Holt-Winters / SARIMAX)
+│   ├── revenue_forecasting.py                 # Out-of-sample forecasting (Holt-Winters / SARIMAX / Baselines)
 │   └── visualizations.py                      # Consulting-style presentation figures
 │
 ├── dashboards/
@@ -133,9 +137,20 @@ Pharmaceutical-Commercial-Analytics/
 │       └── dax_measures.txt                   # Complete DAX measures library (17 core measures)
 │
 ├── outputs/
-│   ├── figures/                               # Presentation-grade charts (PNG)
-│   ├── reports/                               # Customer RFM tables and forecast projections (CSV)
-│   └── metrics/                               # KPI summaries and forecast evaluations (JSON)
+│   ├── figures/                               # Presentation-grade analytical charts (PNG)
+│   │   ├── forecast_actual_vs_predicted.png
+│   │   ├── geographic_market_comparison.png
+│   │   ├── monthly_revenue_trend.png
+│   │   ├── product_pareto_curve.png
+│   │   └── sales_force_productivity.png
+│   ├── metrics/                               # KPI summaries and forecast evaluations (JSON)
+│   │   ├── commercial_summary_metrics.json
+│   │   └── forecast_model_evaluation.json
+│   └── reports/                               # Customer RFM tables and forecast projections (CSV)
+│       ├── customer_rfm_segmentation.csv
+│       ├── forecast_fy2026_projections.csv
+│       ├── forecast_test_set_comparison.csv
+│       └── rfm_segment_summary.csv
 │
 ├── docs/
 │   ├── BUSINESS_INSIGHTS.md                   # Strategic consulting insights and recommendations
@@ -150,8 +165,8 @@ Pharmaceutical-Commercial-Analytics/
 │   └── RESUME_BULLETS.md                      # Quantified, verified project impacts
 │
 ├── tests/
-│   ├── test_analytics.py                      # Core commercial analytics suite (6 tests)
-│   └── test_audit_validation.py               # Independent audit verification suite (10 tests)
+│   ├── test_analytics.py                      # Core commercial analytics suite (8 tests)
+│   └── test_audit_validation.py               # Independent audit & edge-case suite (13 tests)
 │
 ├── requirements.txt                           # Python dependencies
 └── README.md                                  # Project overview documentation
@@ -189,7 +204,7 @@ python3 src/visualizations.py
 ```bash
 python3 -m unittest discover tests -v
 ```
-*Result: 16 tests run, 100% passed (zero duplicates, 0 orphaned keys, exact financial reconciliation, data integrity, and out-of-sample forecast validation).*
+*Result: 21 tests run, 100% passed (zero duplicates, 0 orphaned keys, exact financial reconciliation, data integrity, edge-case bounds, and out-of-sample forecast validation).*
 
 ---
 

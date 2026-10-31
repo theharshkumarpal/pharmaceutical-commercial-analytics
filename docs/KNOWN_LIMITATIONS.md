@@ -1,7 +1,7 @@
 # Known Limitations & Data Assumptions
 
 **Auditor / Consultant:** Pharmaceutical Commercial Analytics Specialist  
-**Target Role:** Life Sciences Consulting Analyst (Blue Matter Consulting focus)  
+**Domain Focus:** Life Sciences Commercial Analytics & Strategic Advisory  
 **Date:** October 2026  
 
 ---

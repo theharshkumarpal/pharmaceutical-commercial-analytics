@@ -1,7 +1,7 @@
 # Quantified Resume Bullets: Pharmaceutical Commercial Analytics
 
-**Target Role:** Pharmaceutical Commercial Analytics Associate / Life Sciences Consulting Analyst (Blue Matter Consulting)  
-**Profile:** Data Analyst | SQL & Power BI Developer | Commercial Operations Specialist  
+**Domain Focus:** Life Sciences Commercial Analytics & Strategic Advisory  
+**Specialization:** Commercial Data Architecture | SQL & Power BI Analytics | Commercial Strategy  
 
 ---
 

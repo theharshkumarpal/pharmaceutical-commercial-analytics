@@ -10,8 +10,24 @@ Outputs:
 """
 
 import os
+import sys
 import sqlite3
+import logging
+from datetime import datetime
 import pandas as pd
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Ensure sibling module imports work when run from src/
+sys.path.insert(0, os.path.dirname(__file__))
 from data_validation import validate_commercial_data
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -21,21 +37,41 @@ DB_PATH = os.path.join(BASE_DIR, "data", "processed", "pharma_commercial.db")
 QUALITY_REPORT_MD = os.path.join(BASE_DIR, "docs", "DATA_QUALITY_REPORT.md")
 
 def run_preprocessing():
-    print(f"Reading raw data from {RAW_PATH}...")
+    pipeline_start = datetime.now()
+    execution_date = pipeline_start.strftime("%Y-%m-%d %H:%M:%S")
+    logger.info("Pipeline started at %s", execution_date)
+    logger.info("Reading raw data from %s...", RAW_PATH)
+    
     df_raw = pd.read_csv(RAW_PATH)
+    logger.info("Ingested %d raw records", len(df_raw))
     
     # 1. Validation & Cleansing
     clean_df, audit = validate_commercial_data(df_raw)
     
+    # Drop audit-trail columns before saving (originals are for internal validation only)
+    export_cols = [c for c in clean_df.columns if not c.endswith("_original")]
+    
     # Ensure processed directory exists
     os.makedirs(os.path.dirname(PROCESSED_CSV), exist_ok=True)
-    clean_df.to_csv(PROCESSED_CSV, index=False)
-    print(f"Saved cleaned sales records ({len(clean_df):,}) to {PROCESSED_CSV}")
+    clean_df[export_cols].to_csv(PROCESSED_CSV, index=False)
+    logger.info("Saved %d cleaned sales records to %s", len(clean_df), PROCESSED_CSV)
     
-    # 2. Generate Data Quality Report Markdown
+    # 2. Generate Data Quality Report Markdown (dynamic execution date)
+    execution_date_display = pipeline_start.strftime("%Y-%m-%d")
+    
+    # Compute financial summary
+    positive_sales = clean_df[clean_df['net_units'] > 0]
+    gross_total = positive_sales['gross_sales_usd'].sum()
+    returns_total = clean_df['return_value_usd'].sum()
+    net_total = clean_df['net_sales_usd'].sum()
+    gtn_rate = net_total / gross_total * 100 if gross_total > 0 else 0.0
+    net_units_total = clean_df['net_units'].sum()
+    n_markets = clean_df['country_name'].nunique()
+    
     report_content = f"""# Data Quality & Validation Report: Commercial Sales Pipeline
 
-**Execution Date:** 2026-10-31  
+**Execution Date:** {execution_date_display}  
+**Pipeline Runtime:** {(datetime.now() - pipeline_start).total_seconds():.1f} seconds  
 **Source Dataset:** `data/raw/pharma_commercial_sales_raw.csv`  
 **Processed Target:** `data/processed/cleaned_sales.csv` & `data/processed/pharma_commercial.db`  
 
@@ -44,6 +80,8 @@ def run_preprocessing():
 ## 1. Executive Summary
 
 A validation protocol was executed over the commercial transactional records. The pipeline strictly maintains reverse logistics integrity (identifying and categorizing returns as commercial deductions rather than silently dropping negative rows), normalizes inconsistent geographic and customer entities, eliminates exact duplicate rows, and verifies gross-to-net financial calculations.
+
+**Financial values are recalculated from unit-level source data.** Original pre-recalculation values are preserved during validation for audit traceability (columns suffixed `_original`).
 
 ---
 
@@ -58,25 +96,31 @@ A validation protocol was executed over the commercial transactional records. Th
 | **Customer Returns & Reversals** | **{audit['returns_identified']:,}** | **Preserved & Tagged** | Reverse logistics preserved with negative unit counts, return amounts, and reason codes. |
 | **Country Inconsistent Casing/Spacing** | **{audit['country_casing_standardized']:,}** | Standardized | Stripped whitespace and title-cased country names (`United States`, `Germany`, etc.). |
 | **Missing Customer Names** | **{audit['missing_customer_name_imputed']:,}** | Imputed via ID | Imputed customer names from known customer registry via `customer_id`. |
-| **Gross-to-Net Reconciliation Mismatch** | **{audit['unmatched_gross_to_net_fixed']:,}** | Reconciled | Enforced `Gross Sales = Units * WAC` and `Net Sales = Units * Net Price`. |
+| **Gross-to-Net Reconciliation Mismatch** | **{audit['unmatched_gross_to_net_fixed']:,}** | Reconciled | Enforced `Gross Sales = Units × WAC` and `Net Sales = Units × Net Price`. Max discrepancy: ${audit.get('max_net_discrepancy_usd', 0):.2f}. |
 | **Final Clean Analytical Records** | **{audit['clean_records_retained']:,}** | **Loaded to OLAP Core** | 100% verified, referentially sound transactions. |
 
 ---
 
 ## 3. Financial Integrity Audit
 
-- **Gross Sales Realized (USD):** ${clean_df[clean_df['net_units'] > 0]['gross_sales_usd'].sum():,.2f}
-- **Customer Returns / Reversals (USD):** ${clean_df['return_value_usd'].sum():,.2f}
-- **Net Recognized Revenue (USD):** ${clean_df['net_sales_usd'].sum():,.2f}
-- **Gross-to-Net Realization Rate:** {clean_df['net_sales_usd'].sum() / clean_df[clean_df['net_units'] > 0]['gross_sales_usd'].sum() * 100:.2f}%
-- **Total Net Units Distributed:** {clean_df['net_units'].sum():,} units across {clean_df['country_name'].nunique()} global markets.
+- **Gross Sales Realized (USD):** ${gross_total:,.2f}
+- **Customer Returns / Reversals (USD):** ${returns_total:,.2f}
+- **Net Recognized Revenue (USD):** ${net_total:,.2f}
+- **Gross-to-Net Realization Rate:** {gtn_rate:.2f}%
+- **Total Net Units Distributed:** {net_units_total:,} units across {n_markets} global markets.
+
+> **Synthetic Data Disclosure:** All financial figures are derived from reproducible synthetic data generated via `src/generate_commercial_data.py` (seed 42). They do not represent actual pharmaceutical manufacturer revenue or verified market share.
 """
+    os.makedirs(os.path.dirname(QUALITY_REPORT_MD), exist_ok=True)
     with open(QUALITY_REPORT_MD, "w") as f:
         f.write(report_content)
-    print(f"Generated Data Quality Report at {QUALITY_REPORT_MD}")
+    logger.info("Generated Data Quality Report at %s", QUALITY_REPORT_MD)
 
     # 3. Create Star Schema in SQLite Database
-    build_sqlite_star_schema(clean_df)
+    build_sqlite_star_schema(clean_df[export_cols])
+    
+    elapsed = (datetime.now() - pipeline_start).total_seconds()
+    logger.info("Pipeline completed in %.1f seconds", elapsed)
 
 def build_sqlite_star_schema(df: pd.DataFrame):
     """
@@ -99,9 +143,10 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     # Enable foreign keys
     cur.execute("PRAGMA foreign_keys = ON;")
     
-    print(f"Building Star Schema in SQLite: {DB_PATH}...")
+    logger.info("Building Star Schema in SQLite: %s...", DB_PATH)
     
     # 1. dim_date
+    df = df.copy()
     df["date_dt"] = pd.to_datetime(df["transaction_date"])
     unique_dates = df[["transaction_date", "date_dt"]].drop_duplicates().sort_values("transaction_date")
     unique_dates["date_key"] = unique_dates["date_dt"].dt.strftime("%Y%m%d").astype(int)
@@ -122,6 +167,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     dim_date.to_sql("dim_date", conn, if_exists="replace", index=False)
     cur.execute("CREATE UNIQUE INDEX idx_dim_date_key ON dim_date(date_key);")
     cur.execute("CREATE INDEX idx_dim_date_year_month ON dim_date(year_month);")
+    logger.info("dim_date: %d unique dates loaded", len(dim_date))
     
     # 2. dim_product
     dim_product = df[[
@@ -131,6 +177,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     dim_product.to_sql("dim_product", conn, if_exists="replace", index=False)
     cur.execute("CREATE UNIQUE INDEX idx_dim_product_key ON dim_product(product_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_product_id ON dim_product(product_id);")
+    logger.info("dim_product: %d products loaded", len(dim_product))
     
     # 3. dim_geography
     dim_geography = df[[
@@ -147,6 +194,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     dim_geography.to_sql("dim_geography", conn, if_exists="replace", index=False)
     cur.execute("CREATE UNIQUE INDEX idx_dim_geography_key ON dim_geography(geography_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_geography_code ON dim_geography(country_code);")
+    logger.info("dim_geography: %d geographies loaded", len(dim_geography))
     
     # 4. dim_customer
     dim_customer = df[[
@@ -156,6 +204,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     dim_customer.to_sql("dim_customer", conn, if_exists="replace", index=False)
     cur.execute("CREATE UNIQUE INDEX idx_dim_customer_key ON dim_customer(customer_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_customer_id ON dim_customer(customer_id);")
+    logger.info("dim_customer: %d customers loaded", len(dim_customer))
     
     # 5. dim_distributor
     dim_distributor = df[[
@@ -168,6 +217,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     dim_distributor.to_sql("dim_distributor", conn, if_exists="replace", index=False)
     cur.execute("CREATE UNIQUE INDEX idx_dim_distributor_key ON dim_distributor(distributor_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_distributor_id ON dim_distributor(distributor_id);")
+    logger.info("dim_distributor: %d distributors loaded", len(dim_distributor))
     
     # 6. dim_sales_rep
     dim_sales_rep = df[[
@@ -177,6 +227,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     dim_sales_rep.to_sql("dim_sales_rep", conn, if_exists="replace", index=False)
     cur.execute("CREATE UNIQUE INDEX idx_dim_sales_rep_key ON dim_sales_rep(sales_rep_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_sales_rep_id ON dim_sales_rep(sales_rep_id);")
+    logger.info("dim_sales_rep: %d sales reps loaded", len(dim_sales_rep))
     
     # 7. dim_channel
     dim_channel = df[[
@@ -186,6 +237,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     dim_channel.to_sql("dim_channel", conn, if_exists="replace", index=False)
     cur.execute("CREATE UNIQUE INDEX idx_dim_channel_key ON dim_channel(channel_key);")
     cur.execute("CREATE UNIQUE INDEX idx_dim_channel_id ON dim_channel(sales_channel_id);")
+    logger.info("dim_channel: %d channels loaded", len(dim_channel))
     
     # 8. fact_sales (Map surrogate keys)
     fact_df = df.copy()
@@ -219,7 +271,7 @@ def build_sqlite_star_schema(df: pd.DataFrame):
     
     conn.commit()
     conn.close()
-    print("Star Schema database built and indexed successfully.")
+    logger.info("Star Schema database built and indexed: %d fact rows, 7 dimensions", len(fact_sales))
 
 if __name__ == "__main__":
     run_preprocessing()

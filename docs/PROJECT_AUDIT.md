@@ -1,46 +1,35 @@
-# Project Audit & Transformation Strategy: Pharmaceutical Commercial Performance & Market Analytics
+# Project Audit & Architecture Blueprint: Pharmaceutical Commercial Performance & Market Analytics
 
-**Author:** Pharmaceutical Commercial Analytics Associate<br>
-**Target Domain:** Life Sciences Commercial Analytics Advisory (Blue Matter Consulting focus)<br>
+**Domain Focus:** Life Sciences Commercial Analytics & Strategic Advisory<br>
 **Date:** October 2026  
-**Status:** Phase 1 Complete (Baseline Audit & Architecture Blueprint)
+**Status:** Architecture Specification & Transformation Blueprint Complete
 
 ---
 
-## 1. Executive Summary & Context
+## 1. Executive Summary & Commercial Scope
 
-The initial repository was structured as a graduate portfolio project (`pharmacovigilance-pipeline`) tracking spontaneous adverse event reports from openFDA FAERS across 6 mental health drugs (Adderall, Ritalin, Xanax, Lexapro, Olanzapine, Seroquel) using Flask, PostgreSQL, and Plotly.
+This platform is engineered exclusively for **Pharmaceutical Commercial Performance, Gross-to-Net (GTN) Revenue Accounting, Market Access Normalization, Customer RFM Segmentation, Sales Force Effectiveness (SFE), and Time-Series Revenue Forecasting**.
 
-While valuable for clinical safety data engineering, **pharmacovigilance data alone does not support commercial performance analytics** (gross-to-net sales, product pricing, customer segmentation, territory sales rep effectiveness, distributor concentration, and channel dynamics). In life sciences commercial consulting (e.g., Blue Matter Consulting), commercial analytics evaluates:
+In life sciences commercial consulting, commercial analytics evaluates:
 1. **Commercial Execution & Revenue Velocity:** Gross sales, return deductions, discounts, net sales realization, and transaction volume.
 2. **Portfolio & Brand Strategy:** ABC/Pareto classification, brand lifecycle, volume vs. value contribution, and therapeutic mix.
 3. **Geographic & Market Access Performance:** Unequal date coverage reconciliation, common-period market growth, and geographic concentration.
 4. **Account & Channel Dynamics:** Health Systems / Hospitals vs. Retail Chains vs. Specialty Pharmacies; distributor dependency (McKesson, AmerisourceBergen/Cencora, Cardinal Health) and RFM customer segmentation.
 5. **Sales Force Effectiveness (SFE):** Territory alignment, representative productivity, headcount-normalized team revenue, and quota tracking.
 
-To establish a dedicated commercial platform adhering to top-tier life sciences consulting standards, the project transitioned to a focused **Commercial Analytics Architecture**:
-- **Commercial Analytics Core:** An enterprise-grade, transaction-level dataset spanning multi-country, multi-channel pharmaceutical sales with real-world complexities (unequal date windows, return rates, pricing variations, customer tiers, and sales rep territories) modeled in a star schema (`fact_sales` + 7 dimensions).
-- **Repository Decoupling:** Spontaneous adverse event reporting and drug safety engineering components were decoupled into the separate repository (`Pharma-Commercial-Drug-Safety-Analytics`), allowing this repository to remain exclusively focused on commercial execution, gross-to-net waterfall accounting, and time-series forecasting.
+The platform architecture is built around:
+- **Commercial Analytics Core:** An enterprise-grade, transaction-level dataset spanning multi-country, multi-channel pharmaceutical sales with real-world distribution dynamics (unequal date windows, return rates, pricing variations, customer tiers, and sales rep territories) modeled in a Kimball star schema (`fact_sales` + 7 dimensions).
+- **Independent Validation & Integrity:** Rigorous financial reconciliation, automated data validation, out-of-sample forecast benchmarking, and automated regression testing.
 
 ---
 
-## 2. Historical Baseline Audit & Commercial Transformation
+## 2. Commercial Analytics Platform Architecture
 
-### 2.1 Historical Baseline Components (Decoupled)
-- `etl/extract.py` & `etl/transform_load.py`: Historical openFDA REST ingestion and JSON normalization pipeline (now housed in dedicated safety repository).
-- `db/schema.sql`: Historical clinical PostgreSQL DDL.
-- `app/app.py` & `app/templates/`: Historical safety visualization web interface.
-
-### 2.2 Existing Strengths
-1. **Clear Relational Schema:** Normalized entity separation following clinical regulatory standards.
-2. **Robust Error Handling:** Handles rate limits (HTTP 429 backoff) and JSON normalization.
-3. **Idempotent Ingestion:** Employs `ON CONFLICT (safety_report_id) DO NOTHING`.
-
-### 2.3 Critical Limitations for Commercial Analytics
-1. **Absence of Transactional Sales Attributes:** No pricing, unit volumes, discounts, customer IDs, distributors, sales territories, or net revenue.
-2. **Single-Source Clinical Data:** FAERS represents spontaneous reporting, meaning it suffers from under-reporting and reporting bias, and cannot establish incidence rates or market share.
-3. **Lack of Star Schema OLAP Capabilities:** Current tables are purely 3NF transactional OLTP without dimensional aggregation tables, surrogate keys for time/geography, or precomputed commercial KPIs.
-4. **Absence of Gross-to-Net Accounting:** No distinction between gross invoicing, chargebacks, customer returns, and net recognized revenue.
+### 2.1 Core Architectural Requirements
+1. **Kimball Star Schema OLAP Core:** Dimensional aggregation tables with surrogate keys for time, geography, customer, product, distributor, channel, and sales rep.
+2. **Gross-to-Net (GTN) Waterfall Accounting:** Rigorous accounting distinguishing gross invoicing (WAC), reverse logistics returns, statutory/contract discounts, and net recognized revenue.
+3. **Common-Period Normalization:** Standardized benchmarking across non-synchronous geographic launch dates.
+4. **Multi-Horizon Revenue Forecasting:** Defensible statistical time-series models evaluated against seasonal naive and persistence baselines.
 
 ---
 
@@ -84,30 +73,30 @@ To enable end-to-end commercial analytics matching top-tier consulting standards
 ## 5. End-to-End Implementation Roadmap
 
 - [x] **Phase 1: Project Audit & Architectural Strategy** (`docs/PROJECT_AUDIT.md`)
-- [ ] **Phase 2: Data Generation, Validation & Preprocessing Pipeline**
+- [x] **Phase 2: Data Generation, Validation & Preprocessing Pipeline**
   - Implement `src/generate_commercial_data.py` with realistic market anomalies, unequal country coverage, and returns.
   - Implement `src/data_validation.py` and `src/data_preprocessing.py`.
   - Produce `docs/DATA_DICTIONARY.md` and `docs/DATA_QUALITY_REPORT.md`.
-- [ ] **Phase 3: SQL Dimensional Model (Star Schema)**
+- [x] **Phase 3: SQL Dimensional Model (Star Schema)**
   - Implement `sql/02_schema.sql` (Fact & 7 Dimensions with PK/FK, surrogate keys, indexing).
   - Implement `sql/03_transformations.sql` to load cleaned data into SQLite / PostgreSQL.
-- [ ] **Phase 4: Advanced SQL Commercial Analytics Suite**
+- [x] **Phase 4: Advanced SQL Commercial Analytics Suite**
   - `sql/04_kpi_analysis.sql`: Executive commercial performance & Gross-to-Net.
   - `sql/05_product_analysis.sql`: Portfolio ABC/Pareto & product mix.
   - `sql/06_customer_analysis.sql`: Customer RFM segmentation & distributor concentration.
   - `sql/07_geographic_analysis.sql`: Normalized geographic performance & common-period comparisons.
   - `sql/08_sales_force_analysis.sql`: Territory & sales force productivity analytics.
   - `sql/09_channel_analysis.sql`: Commercial channel velocity & average transaction values.
-- [ ] **Phase 5: Python Analytical Workflow & Defensible Forecasting**
+- [x] **Phase 5: Python Analytical Workflow & Defensible Forecasting**
   - `src/eda.py`: Automated statistical profiling.
   - `src/customer_segmentation.py`: RFM clustering and account profiling.
   - `src/revenue_forecasting.py`: Time series forecasting (ARIMA / Holt-Winters) with backtesting.
   - `src/visualizations.py`: High-resolution figures saved to `outputs/figures/`.
-- [ ] **Phase 6: Power BI Semantic Model & Dashboard Specifications**
+- [x] **Phase 6: Power BI Semantic Model & Dashboard Specifications**
   - Comprehensive DAX measures library (`dashboards/powerbi/dax_measures.txt`).
   - 6-page interactive executive wireframe and consulting guide (`docs/DASHBOARD_GUIDE.md`).
-- [ ] **Phase 7: Testing, Validation & Financial Reconciliation**
-  - Automated tests in `tests/test_analytics.py` verifying financial reconciliation (Gross - Returns = Net).
-- [ ] **Phase 8: Consulting Insights & Executive Deliverables**
+- [x] **Phase 7: Testing, Validation & Financial Reconciliation**
+  - Automated tests in `tests/test_analytics.py` and `tests/test_audit_validation.py` verifying financial reconciliation.
+- [x] **Phase 8: Consulting Insights & Executive Deliverables**
   - `docs/BUSINESS_INSIGHTS.md`: Executive findings & consulting recommendations.
   - `docs/RESUME_BULLETS.md`: High-impact, quantified project metrics.

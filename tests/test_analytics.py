@@ -2,11 +2,14 @@
 tests/test_analytics.py
 -----------------------
 Automated integration tests verifying commercial analytics and financial integrity:
-1. Gross - Returns - Discounts = Net Sales (Financial reconciliation)
+1. Database existence and population
 2. No duplicate transactions in fact_sales
 3. Zero orphaned foreign keys in star schema
-4. Proper return tagging (negative units have positive return_value_usd)
-5. Out-of-sample forecast validation metrics exist
+4. Financial reconciliation (Gross - Returns ≈ Net)
+5. Returns and reversals integrity
+6. Geographic coverage integrity
+7. Row-level financial identity (Net = Gross - Return per row)
+8. Edge case: no null surrogate keys in fact_sales
 """
 
 import os
@@ -89,7 +92,7 @@ class TestCommercialAnalytics(unittest.TestCase):
         self.assertGreater(net, 1.2e9, "Total Net Sales should be > $1.2 Billion")
         # Returns must be positive dollar deductions
         self.assertGreater(returns, 2.0e6, "Total Returns should be > $2.0 Million")
-        # Gross margin must equal net sales - cogs within 10 dollars due to rounding
+        # Gross margin must equal net sales - cogs within tolerance due to rounding
         self.assertAlmostEqual(margin, net - cogs, delta=50.0)
 
     def test_returns_and_reversals_integrity(self):
@@ -110,6 +113,40 @@ class TestCommercialAnalytics(unittest.TestCase):
         geos = dict(cur.fetchall())
         expected_geos = {"CA": 18, "DE": 36, "FR": 30, "JP": 24, "UK": 36, "US": 36}
         self.assertEqual(geos, expected_geos)
+
+    def test_row_level_financial_identity(self):
+        """Verify per-row financial consistency:
+        - For returns: net_sales_usd should equal -return_value_usd
+        - For sales: gross_margin_usd should equal net_sales_usd - cogs_usd
+        """
+        cur = self.conn.cursor()
+        # Returns: net_sales = -return_value
+        cur.execute("""
+            SELECT COUNT(*) 
+            FROM fact_sales 
+            WHERE net_units < 0 AND ABS(net_sales_usd - (-return_value_usd)) > 0.02;
+        """)
+        return_mismatches = cur.fetchone()[0]
+        self.assertEqual(return_mismatches, 0, f"{return_mismatches} return rows fail net = -return identity")
+        
+        # All rows: gross_margin = net_sales - cogs
+        cur.execute("""
+            SELECT COUNT(*) 
+            FROM fact_sales 
+            WHERE ABS(gross_margin_usd - (net_sales_usd - cogs_usd)) > 0.02;
+        """)
+        margin_mismatches = cur.fetchone()[0]
+        self.assertEqual(margin_mismatches, 0, f"{margin_mismatches} rows fail margin = net - cogs identity")
+
+    def test_no_null_surrogate_keys(self):
+        """Edge case: ensure no NULL surrogate keys exist in fact_sales."""
+        cur = self.conn.cursor()
+        key_cols = ["date_key", "product_key", "geography_key", "customer_key",
+                    "distributor_key", "sales_rep_key", "channel_key"]
+        for col in key_cols:
+            cur.execute(f"SELECT COUNT(*) FROM fact_sales WHERE {col} IS NULL;")
+            nulls = cur.fetchone()[0]
+            self.assertEqual(nulls, 0, f"Found {nulls} NULL values in fact_sales.{col}")
 
 if __name__ == "__main__":
     unittest.main()

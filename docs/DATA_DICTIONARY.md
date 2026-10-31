@@ -1,6 +1,6 @@
 # Data Dictionary: Pharmaceutical Commercial Performance Platform
 
-**Target Role:** Life Sciences Commercial Analytics Consultant (Blue Matter Consulting focus)  
+**Domain Focus:** Life Sciences Commercial Analytics & Strategic Advisory  
 **Architecture:** Star Schema OLAP Architecture  
 **Database Target:** SQLite (`pharma_commercial.db`) / PostgreSQL Compatible  
 **Last Updated:** October 2026  

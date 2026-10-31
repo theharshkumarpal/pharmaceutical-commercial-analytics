@@ -3,26 +3,31 @@ src/visualizations.py
 ---------------------
 Generates presentation-grade, consulting-style analytical figures for life sciences commercial reporting.
 Outputs high-resolution charts to outputs/figures/:
-1. gross_to_net_waterfall.png
-2. monthly_revenue_trend.png
-3. product_pareto_curve.png
-4. geographic_market_comparison.png
-5. customer_rfm_scatter.png
-6. sales_force_productivity.png
-7. forecast_actual_vs_predicted.png
+1. monthly_revenue_trend.png       - Revenue velocity & reverse logistics deductions
+2. product_pareto_curve.png        - Product ABC / Pareto cumulative concentration
+3. geographic_market_comparison.png - All-time vs FY2025 common-period sales
+4. sales_force_productivity.png    - Headcount-normalized SFE
+5. forecast_actual_vs_predicted.png - Out-of-sample forecast comparison (H2 2025)
 """
 
 import os
+import json
 import sqlite3
+import logging
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")  # Non-interactive backend for reproducible rendering
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, "data", "processed", "pharma_commercial.db")
 FIGURES_DIR = os.path.join(BASE_DIR, "outputs", "figures")
 REPORTS_DIR = os.path.join(BASE_DIR, "outputs", "reports")
+METRICS_DIR = os.path.join(BASE_DIR, "outputs", "metrics")
 
 # Professional Blue Matter / Life Sciences Consulting Styling
 plt.style.use("seaborn-v0_8-whitegrid" if "seaborn-v0_8-whitegrid" in plt.style.available else "default")
@@ -87,6 +92,7 @@ def generate_all_visualizations():
     plt.tight_layout()
     plt.savefig(os.path.join(FIGURES_DIR, "monthly_revenue_trend.png"), dpi=300)
     plt.close()
+    logger.info("Generated: monthly_revenue_trend.png")
     
     # -------------------------------------------------------------
     # 2. Product ABC / Pareto Curve
@@ -124,6 +130,7 @@ def generate_all_visualizations():
     plt.tight_layout()
     plt.savefig(os.path.join(FIGURES_DIR, "product_pareto_curve.png"), dpi=300)
     plt.close()
+    logger.info("Generated: product_pareto_curve.png")
 
     # -------------------------------------------------------------
     # 3. Geographic Performance: All-Time vs FY2025 Common-Period
@@ -160,6 +167,7 @@ def generate_all_visualizations():
     plt.tight_layout()
     plt.savefig(os.path.join(FIGURES_DIR, "geographic_market_comparison.png"), dpi=300, bbox_inches="tight")
     plt.close()
+    logger.info("Generated: geographic_market_comparison.png")
 
     # -------------------------------------------------------------
     # 4. Sales Force Effectiveness: Headcount-Normalized Productivity
@@ -188,20 +196,38 @@ def generate_all_visualizations():
     plt.tight_layout()
     plt.savefig(os.path.join(FIGURES_DIR, "sales_force_productivity.png"), dpi=300)
     plt.close()
+    logger.info("Generated: sales_force_productivity.png")
     
     conn.close()
     
     # -------------------------------------------------------------
     # 5. Forecast Comparison: Actual vs Predicted (H2 2025)
+    # Read MAPE dynamically from the evaluation JSON instead of hardcoding
     # -------------------------------------------------------------
     forecast_test_path = os.path.join(REPORTS_DIR, "forecast_test_set_comparison.csv")
+    eval_json_path = os.path.join(METRICS_DIR, "forecast_model_evaluation.json")
+    
     if os.path.exists(forecast_test_path):
         f_df = pd.read_csv(forecast_test_path)
+        
+        # Read actual MAPE from evaluation results (avoid hardcoded label)
+        hw_mape_label = "Holt-Winters"
+        if os.path.exists(eval_json_path):
+            with open(eval_json_path, "r") as ef:
+                eval_data = json.load(ef)
+            hw_eval = eval_data.get("Holt_Winters_Exponential_Smoothing", {})
+            hw_mape = hw_eval.get("MAPE_pct", "N/A")
+            hw_mape_label = f"Holt-Winters (MAPE {hw_mape}%)"
+        
         fig, ax = plt.subplots(figsize=(10, 5))
         ax.plot(f_df["year_month"], f_df["actual_net_sales_usd"], label="Actual Net Sales", color="black", marker="s", linewidth=2.5)
-        ax.plot(f_df["year_month"], f_df["pred_holt_winters_usd"], label="Holt-Winters Exp. Smoothing (MAPE 1.84%)", color=SECONDARY_TEAL, marker="o", linestyle="--", linewidth=2)
+        ax.plot(f_df["year_month"], f_df["pred_holt_winters_usd"], label=hw_mape_label, color=SECONDARY_TEAL, marker="o", linestyle="--", linewidth=2)
         ax.plot(f_df["year_month"], f_df["pred_sarimax_usd"], label="SARIMAX (1,1,1)", color=PRIMARY_BLUE, marker="^", linestyle=":", linewidth=2)
         ax.plot(f_df["year_month"], f_df["pred_moving_average_usd"], label="6-Month Moving Average", color=NEUTRAL_GRAY, linestyle="-.")
+        
+        # Plot seasonal naive if available
+        if "pred_seasonal_naive_usd" in f_df.columns:
+            ax.plot(f_df["year_month"], f_df["pred_seasonal_naive_usd"], label="Seasonal Naive", color=ACCENT_CORAL, marker="x", linestyle="--", linewidth=1.5)
         
         ax.set_title("Out-of-Sample Revenue Forecast Validation (H2 2025 Test Horizon)", pad=15)
         ax.set_ylabel("Net Recognized Revenue (USD)")
@@ -210,8 +236,10 @@ def generate_all_visualizations():
         plt.tight_layout()
         plt.savefig(os.path.join(FIGURES_DIR, "forecast_actual_vs_predicted.png"), dpi=300)
         plt.close()
+        logger.info("Generated: forecast_actual_vs_predicted.png")
 
     print(f"All 5 presentation-grade charts successfully saved to {FIGURES_DIR}")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
     generate_all_visualizations()
