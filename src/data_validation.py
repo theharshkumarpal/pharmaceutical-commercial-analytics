@@ -231,7 +231,7 @@ def validate_commercial_data(df: pd.DataFrame, cogs_fallback_pct: float = 0.15) 
     )
     discount_orig = work_df["contract_discount_usd_original"]
     discount_diff = np.where(discount_orig.isna(), 0.0, np.abs(discount_orig - expected_discount))
-    discount_corrected = (discount_orig.notna() & (discount_diff > 0.01)) & (~is_rejected)
+    discount_corrected = (discount_orig.isna() | (discount_diff > 0.01)) & (~is_rejected)
     discount_status = np.where(is_rejected, "REJECTED", np.where(discount_corrected, "CORRECTED", "PASS"))
 
     # Metric C: Customer Returns & Reverse Logistics

@@ -54,6 +54,7 @@ class TestDataValidationUnit(unittest.TestCase):
             "contract_discount_pct": 15.00,
             "unit_net_price_usd": 242.25,
             "gross_sales_usd": 28500.00,
+            "contract_discount_usd": 4275.00,
             "return_value_usd": 0.0,
             "net_sales_usd": 24225.00,
             "cogs_usd": 4200.00,
@@ -326,11 +327,11 @@ class TestDataValidationUnit(unittest.TestCase):
         """Reconciliation identity: Gross Sales - Contract Discounts - Returns = Net Sales at row and portfolio level."""
         records = [
             # Standard sale
-            dict(self.base_record, transaction_id="TXN-W1", net_units=100, units_ordered=100, unit_wac_price_usd=300.0, contract_discount_pct=10.0, unit_net_price_usd=270.0),
+            dict(self.base_record, transaction_id="TXN-W1", net_units=100, units_ordered=100, unit_wac_price_usd=300.0, contract_discount_pct=10.0, unit_net_price_usd=270.0, gross_sales_usd=30000.0, contract_discount_usd=3000.0, net_sales_usd=27000.0),
             # Deep discount sale
-            dict(self.base_record, transaction_id="TXN-W2", net_units=50, units_ordered=50, unit_wac_price_usd=400.0, contract_discount_pct=25.0, unit_net_price_usd=300.0),
+            dict(self.base_record, transaction_id="TXN-W2", net_units=50, units_ordered=50, unit_wac_price_usd=400.0, contract_discount_pct=25.0, unit_net_price_usd=300.0, gross_sales_usd=20000.0, contract_discount_usd=5000.0, net_sales_usd=15000.0),
             # Return record
-            dict(self.base_record, transaction_id="TXN-W3", net_units=-10, units_ordered=0, units_returned=10, unit_wac_price_usd=200.0, contract_discount_pct=15.0, unit_net_price_usd=170.0, return_value_usd=1700.0, return_reason="Customer Overstock Return"),
+            dict(self.base_record, transaction_id="TXN-W3", net_units=-10, units_ordered=0, units_returned=10, unit_wac_price_usd=200.0, contract_discount_pct=15.0, unit_net_price_usd=170.0, gross_sales_usd=0.0, contract_discount_usd=0.0, return_value_usd=1700.0, net_sales_usd=-1700.0, return_reason="Customer Overstock Return"),
         ]
         clean_df, ledger, _ = validate_commercial_data(pd.DataFrame(records))
         self.assertEqual(len(clean_df), 3)
@@ -455,6 +456,29 @@ class TestDataValidationUnit(unittest.TestCase):
         self.assertEqual(row_est["cogs_usd"], 3750.0)
         self.assertEqual(row_est["cogs_source_type"], "ESTIMATED")
         self.assertEqual(ledger[ledger["transaction_id"] == "TXN-COGS-EST"].iloc[0]["cogs_source_type"], "ESTIMATED")
+
+    def test_missing_contract_discount_usd_recalculated_and_corrected(self):
+        """Missing original contract discount is recalculated, tagging financial CORRECTED and recording audit note."""
+        record = dict(self.base_record, transaction_id="TXN-DISC-MISSING", contract_discount_usd=np.nan)
+        clean_df, ledger, _ = validate_commercial_data(pd.DataFrame([record]))
+        self.assertEqual(len(clean_df), 1)
+        row = clean_df.iloc[0]
+        ledger_row = ledger.iloc[0]
+
+        # 1. Missing original contract discount is recalculated
+        self.assertEqual(row["contract_discount_usd"], 4275.00)
+
+        # 2. financial_reconciliation_status becomes CORRECTED
+        self.assertEqual(row["financial_reconciliation_status"], "CORRECTED")
+        self.assertEqual(ledger_row["financial_reconciliation_status"], "CORRECTED")
+
+        # 3. data_quality_status remains PASS
+        self.assertEqual(row["data_quality_status"], "PASS")
+        self.assertEqual(ledger_row["data_quality_status"], "PASS")
+
+        # 4. The audit ledger records the correction
+        self.assertEqual(row["reconciliation_status"], "CORRECTED")
+        self.assertIn("CONTRACT_DISCOUNT_RECONCILED", ledger_row["audit_notes"])
 
 
 if __name__ == "__main__":
