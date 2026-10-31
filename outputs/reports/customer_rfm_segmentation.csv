@@ -1,0 +1,121 @@
+customer_id,customer_name,customer_type,country_code,recency_days,frequency_orders,total_units_purchased,monetary_value_usd,aov_usd,r_score,f_score,m_score,rfm_segment,cluster_id,cluster_name
+CUST-0001,US Community Account #1,Community Hospital,US,1,221,38906,10527556.24,47636.0,4,2,3,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0002,US Integrated Account #2,Integrated Delivery Network (IDN),US,4,243,42579,10924511.61,44956.84,2,3,3,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0003,UK National Account #3,National Retail Pharmacy,UK,19,169,28199,7337200.76,43415.39,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0004,US National Account #4,National Retail Pharmacy,US,0,188,32468,8529063.67,45367.36,4,1,1,Tier 4: Promising Developing Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0005,US Integrated Account #5,Integrated Delivery Network (IDN),US,8,216,37463,9652978.83,44689.72,1,2,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0006,DE Academic Account #6,Academic Medical Center,DE,0,248,41553,11211752.73,45208.68,4,4,4,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0007,US Academic Account #7,Academic Medical Center,US,0,207,36363,9240145.69,44638.38,4,1,2,Tier 4: Promising Developing Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0008,DE Community Account #8,Community Hospital,DE,3,211,36627,8961701.85,42472.52,3,2,1,Tier 2: Loyal Growth Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0009,DE Integrated Account #9,Integrated Delivery Network (IDN),DE,1,218,38621,9579945.41,43944.7,4,2,2,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0010,US National Account #10,National Retail Pharmacy,US,9,253,43940,11872175.59,46925.6,1,4,4,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0011,UK National Account #11,National Retail Pharmacy,UK,18,167,28706,7336146.41,43929.02,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0012,US Integrated Account #12,Integrated Delivery Network (IDN),US,13,249,45728,11995568.93,48174.98,1,4,4,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0013,US Specialty Account #13,Specialty Oncology Clinic,US,4,246,43016,10883555.44,44242.1,2,3,3,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0014,US Academic Account #14,Academic Medical Center,US,5,248,44252,12488975.9,50358.77,2,4,4,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0015,UK National Account #15,National Retail Pharmacy,UK,2,182,32733,8144114.76,44747.88,3,1,1,Tier 4: Promising Developing Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0016,UK National Account #16,National Retail Pharmacy,UK,3,183,30754,8055726.24,44020.36,3,1,1,Tier 4: Promising Developing Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0017,CA Community Account #17,Community Hospital,CA,2,239,43703,11173344.97,46750.4,3,3,4,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0018,DE Integrated Account #18,Integrated Delivery Network (IDN),DE,18,187,31501,7564944.34,40454.25,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0019,UK National Account #19,National Retail Pharmacy,UK,2,168,26114,7463106.41,44423.25,3,1,1,Tier 4: Promising Developing Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0020,DE National Account #20,National Retail Pharmacy,DE,9,251,44155,11625750.12,46317.73,1,4,4,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0021,US Community Account #21,Community Hospital,US,4,229,37729,9793272.67,42765.38,2,3,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0022,US Integrated Account #22,Integrated Delivery Network (IDN),US,7,212,36470,9650604.67,45521.72,2,2,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0023,US Academic Account #23,Academic Medical Center,US,1,226,39480,9677606.61,42821.27,4,2,2,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0024,US Academic Account #24,Academic Medical Center,US,1,228,39404,9672953.54,42425.23,4,2,2,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0025,US Community Account #25,Community Hospital,US,12,219,37787,9547496.54,43595.87,1,2,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0026,US Integrated Account #26,Integrated Delivery Network (IDN),US,2,217,38637,9707521.84,44735.12,3,2,2,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0027,JP Integrated Account #27,Integrated Delivery Network (IDN),JP,4,268,48988,11635352.88,43415.5,2,4,4,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0028,UK Community Account #28,Community Hospital,UK,4,157,28544,7304517.91,46525.59,2,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0029,UK Academic Account #29,Academic Medical Center,UK,5,161,26430,7828789.18,48626.02,2,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0030,US Academic Account #30,Academic Medical Center,US,2,259,42401,10884760.65,42026.1,3,4,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0031,UK Specialty Account #31,Specialty Oncology Clinic,UK,24,175,32219,7978245.78,45589.98,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0032,UK Community Account #32,Community Hospital,UK,6,165,28740,7047554.93,42712.45,2,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0033,FR National Account #33,National Retail Pharmacy,FR,0,450,81076,20355909.99,45235.36,4,4,4,Tier 1: Strategic Key Account (Champion),3,"Cluster 1: Enterprise Health Systems (High Volume, High Spend)"
+CUST-0034,US Integrated Account #34,Integrated Delivery Network (IDN),US,1,193,34705,8634750.24,44739.64,4,1,1,Tier 4: Promising Developing Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0035,US Integrated Account #35,Integrated Delivery Network (IDN),US,8,229,39499,9764480.63,42639.65,1,3,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0036,CA Academic Account #36,Academic Medical Center,CA,3,251,42005,12055650.96,48030.48,3,4,4,Tier 1: Strategic Key Account (Champion),1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0037,US National Account #37,National Retail Pharmacy,US,8,191,33724,8976648.27,46998.16,1,1,2,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0038,US Community Account #38,Community Hospital,US,8,207,38162,8525793.33,41187.41,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0039,DE Specialty Account #39,Specialty Oncology Clinic,DE,6,226,38090,9135172.75,40421.12,2,2,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0040,US Integrated Account #40,Integrated Delivery Network (IDN),US,4,229,39875,9820158.11,42882.79,2,3,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0041,US Community Account #41,Community Hospital,US,8,217,40115,8931013.94,41156.75,1,2,1,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0042,JP Community Account #42,Community Hospital,JP,6,256,46257,11786492.5,46040.99,2,4,4,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0043,US Integrated Account #43,Integrated Delivery Network (IDN),US,14,226,38666,9937519.92,43971.33,1,2,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0044,DE Specialty Account #44,Specialty Oncology Clinic,DE,2,217,37683,9732014.29,44847.99,3,2,2,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0045,US Academic Account #45,Academic Medical Center,US,4,257,46491,12630684.39,49146.63,2,4,4,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0046,UK Academic Account #46,Academic Medical Center,UK,12,191,30129,8066646.08,42233.75,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0047,US National Account #47,National Retail Pharmacy,US,3,225,40714,10853664.65,48238.51,3,2,3,Tier 2: Loyal Growth Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0048,US Academic Account #48,Academic Medical Center,US,0,240,39751,10627294.26,44280.39,4,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0049,DE Specialty Account #49,Specialty Oncology Clinic,DE,0,230,43046,10556497.5,45897.82,4,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0050,JP Specialty Account #50,Specialty Oncology Clinic,JP,3,275,48035,12105264.1,44019.14,3,4,4,Tier 1: Strategic Key Account (Champion),1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0051,UK Academic Account #51,Academic Medical Center,UK,3,166,31004,7698434.88,46376.11,3,1,1,Tier 4: Promising Developing Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0052,DE Community Account #52,Community Hospital,DE,2,222,40285,10452579.33,47083.69,3,2,3,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0053,UK Integrated Account #53,Integrated Delivery Network (IDN),UK,9,172,30224,7876955.01,45796.25,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0054,US Academic Account #54,Academic Medical Center,US,0,229,38790,9790442.16,42753.02,4,3,2,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0055,CA Integrated Account #55,Integrated Delivery Network (IDN),CA,1,243,42205,10913980.94,44913.5,4,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0056,US National Account #56,National Retail Pharmacy,US,3,219,37715,10704548.7,48879.22,3,2,3,Tier 2: Loyal Growth Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0057,US Integrated Account #57,Integrated Delivery Network (IDN),US,9,231,41317,10028392.58,43412.95,1,3,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0058,JP Specialty Account #58,Specialty Oncology Clinic,JP,1,249,44840,10125091.5,40663.02,4,4,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0059,UK Integrated Account #59,Integrated Delivery Network (IDN),UK,15,174,30328,7262316.35,41737.45,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0060,US Community Account #60,Community Hospital,US,0,217,39771,9900571.6,45624.75,4,2,2,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0061,DE National Account #61,National Retail Pharmacy,DE,1,220,42607,10335789.12,46980.86,4,2,3,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0062,DE National Account #62,National Retail Pharmacy,DE,16,214,38451,10173977.01,47541.95,1,2,3,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0063,US Academic Account #63,Academic Medical Center,US,9,226,39193,9945407.91,44006.23,1,2,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0064,JP Academic Account #64,Academic Medical Center,JP,1,253,40898,10812125.66,42735.67,4,4,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0065,FR National Account #65,National Retail Pharmacy,FR,2,430,77910,19963276.41,46426.22,3,4,4,Tier 1: Strategic Key Account (Champion),3,"Cluster 1: Enterprise Health Systems (High Volume, High Spend)"
+CUST-0066,US Integrated Account #66,Integrated Delivery Network (IDN),US,2,239,38337,10794646.81,45165.89,3,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0067,CA National Account #67,National Retail Pharmacy,CA,2,231,39126,9891288.84,42819.43,3,3,2,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0068,DE Academic Account #68,Academic Medical Center,DE,4,222,40190,10611467.75,47799.4,2,2,3,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0069,FR Academic Account #69,Academic Medical Center,FR,3,422,77920,18537531.21,43927.8,3,4,4,Tier 1: Strategic Key Account (Champion),3,"Cluster 1: Enterprise Health Systems (High Volume, High Spend)"
+CUST-0070,US National Account #70,National Retail Pharmacy,US,0,225,39323,9942264.39,44187.84,4,2,2,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0071,DE Integrated Account #71,Integrated Delivery Network (IDN),DE,1,234,40733,10497185.18,44859.77,4,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0072,JP Integrated Account #72,Integrated Delivery Network (IDN),JP,0,248,45248,11456137.04,46194.1,4,4,4,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0073,US Integrated Account #73,Integrated Delivery Network (IDN),US,1,239,40322,10444052.35,43698.96,4,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0074,UK Community Account #74,Community Hospital,UK,12,167,28351,7576587.1,45368.79,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0075,US Academic Account #75,Academic Medical Center,US,6,218,38598,10298416.31,47240.44,2,2,3,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0076,UK Specialty Account #76,Specialty Oncology Clinic,UK,9,154,25882,6354352.31,41262.03,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0077,DE Integrated Account #77,Integrated Delivery Network (IDN),DE,1,235,39244,10292826.99,43799.26,4,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0078,US Academic Account #78,Academic Medical Center,US,7,262,45971,11519231.34,43966.53,2,4,4,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0079,DE Integrated Account #79,Integrated Delivery Network (IDN),DE,2,203,36936,9011846.19,44393.33,3,1,2,Tier 4: Promising Developing Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0080,US Integrated Account #80,Integrated Delivery Network (IDN),US,1,213,37062,8940438.33,41973.89,4,2,1,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0081,UK Academic Account #81,Academic Medical Center,UK,9,177,32637,8086627.69,45687.16,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0082,JP Integrated Account #82,Integrated Delivery Network (IDN),JP,2,263,46694,11453151.05,43548.1,3,4,4,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0083,US National Account #83,National Retail Pharmacy,US,20,262,47670,12080638.6,46109.31,1,4,4,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0084,UK Integrated Account #84,Integrated Delivery Network (IDN),UK,8,205,35677,8747360.59,42670.05,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0085,US Academic Account #85,Academic Medical Center,US,0,226,40764,9961087.29,44075.61,4,2,2,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0086,DE Specialty Account #86,Specialty Oncology Clinic,DE,4,233,41842,10790866.02,46312.73,2,3,3,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0087,FR Integrated Account #87,Integrated Delivery Network (IDN),FR,0,454,81207,20267006.67,44640.98,4,4,4,Tier 1: Strategic Key Account (Champion),3,"Cluster 1: Enterprise Health Systems (High Volume, High Spend)"
+CUST-0088,US National Account #88,National Retail Pharmacy,US,0,238,41760,10625369.3,44644.41,4,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0089,US Academic Account #89,Academic Medical Center,US,4,223,38200,9985910.55,44779.87,2,2,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0090,DE Integrated Account #90,Integrated Delivery Network (IDN),DE,0,230,36397,10299845.54,44781.94,4,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0091,UK National Account #91,National Retail Pharmacy,UK,2,154,25894,6869747.68,44608.75,3,1,1,Tier 4: Promising Developing Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0092,US Specialty Account #92,Specialty Oncology Clinic,US,1,252,41484,12067118.51,47885.39,4,4,4,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0093,US Integrated Account #93,Integrated Delivery Network (IDN),US,7,223,41742,10229441.4,45871.93,2,2,3,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0094,US National Account #94,National Retail Pharmacy,US,9,245,45168,11169607.09,45590.23,1,3,4,Tier 3: At-Risk High-Value Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0095,DE Academic Account #95,Academic Medical Center,DE,0,232,40512,11129554.48,47972.22,4,3,4,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0096,US Integrated Account #96,Integrated Delivery Network (IDN),US,2,236,43405,11200150.24,47458.26,3,3,4,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0097,JP Integrated Account #97,Integrated Delivery Network (IDN),JP,1,279,46594,10734852.21,38476.17,4,4,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0098,JP Integrated Account #98,Integrated Delivery Network (IDN),JP,3,241,38882,9996050.89,41477.39,3,3,2,Tier 2: Loyal Growth Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0099,US Community Account #99,Community Hospital,US,3,207,37571,9016533.4,43558.13,3,1,2,Tier 4: Promising Developing Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0100,FR Specialty Account #100,Specialty Oncology Clinic,FR,6,421,75672,18612320.64,44209.79,2,4,4,Tier 3: At-Risk High-Value Account,3,"Cluster 1: Enterprise Health Systems (High Volume, High Spend)"
+CUST-0101,JP Specialty Account #101,Specialty Oncology Clinic,JP,2,233,37586,11038443.6,47375.29,3,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0102,US National Account #102,National Retail Pharmacy,US,2,241,40175,10124677.53,42011.11,3,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0103,US Integrated Account #103,Integrated Delivery Network (IDN),US,12,214,40672,9448431.32,44151.55,1,2,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0104,US Integrated Account #104,Integrated Delivery Network (IDN),US,3,221,39002,9743089.28,44086.38,3,2,2,Tier 2: Loyal Growth Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0105,CA Integrated Account #105,Integrated Delivery Network (IDN),CA,2,246,45685,11128685.3,45238.56,3,4,4,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0106,FR Integrated Account #106,Integrated Delivery Network (IDN),FR,0,467,81588,20758660.57,44451.09,4,4,4,Tier 1: Strategic Key Account (Champion),3,"Cluster 1: Enterprise Health Systems (High Volume, High Spend)"
+CUST-0107,US Integrated Account #107,Integrated Delivery Network (IDN),US,0,238,41632,9768126.46,41042.55,4,3,2,Tier 2: Loyal Growth Account,2,Cluster 3: Moderate Regular Buyers
+CUST-0108,CA Specialty Account #108,Specialty Oncology Clinic,CA,2,231,41620,10750499.86,46538.96,3,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0109,UK Community Account #109,Community Hospital,UK,8,164,27704,6586226.74,40159.92,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0110,US Academic Account #110,Academic Medical Center,US,3,206,35717,8409546.98,40823.04,3,1,1,Tier 4: Promising Developing Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0111,DE Specialty Account #111,Specialty Oncology Clinic,DE,25,207,36485,8606341.61,41576.53,1,2,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0112,FR Community Account #112,Community Hospital,FR,1,403,74983,19171114.02,47571.0,4,4,4,Tier 1: Strategic Key Account (Champion),3,"Cluster 1: Enterprise Health Systems (High Volume, High Spend)"
+CUST-0113,DE Academic Account #113,Academic Medical Center,DE,4,230,38863,10075788.56,43807.78,2,3,2,Tier 5: Low-Engagement Account,1,Cluster 2: Frequent Mid-Tier Accounts
+CUST-0114,JP Integrated Account #114,Integrated Delivery Network (IDN),JP,1,267,43848,11891458.07,44537.3,4,4,4,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0115,CA Academic Account #115,Academic Medical Center,CA,0,229,43357,10427669.01,45535.67,4,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0116,US Academic Account #116,Academic Medical Center,US,2,255,44531,11302266.37,44322.61,3,4,4,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0117,UK Community Account #117,Community Hospital,UK,2,179,29510,7230215.74,40392.27,3,1,1,Tier 4: Promising Developing Account,0,Cluster 4: Lapsed / Low-Velocity Clinics
+CUST-0118,US Integrated Account #118,Integrated Delivery Network (IDN),US,2,265,49434,11459539.37,43243.54,3,4,4,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0119,US National Account #119,National Retail Pharmacy,US,1,235,39066,10101063.35,42983.25,4,3,3,Tier 1: Strategic Key Account (Champion),2,Cluster 3: Moderate Regular Buyers
+CUST-0120,UK Community Account #120,Community Hospital,UK,13,162,28276,6492532.09,40077.36,1,1,1,Tier 5: Low-Engagement Account,0,Cluster 4: Lapsed / Low-Velocity Clinics

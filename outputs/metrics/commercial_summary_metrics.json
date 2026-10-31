@@ -1,0 +1,53 @@
+{
+  "dataset_summary": {
+    "total_transactions": 28500,
+    "total_net_units": 4898450,
+    "date_min": "2023-01-01",
+    "date_max": "2025-12-31",
+    "unique_countries": 6,
+    "unique_products": 9,
+    "unique_customers": 120,
+    "unique_distributors": 6,
+    "unique_sales_reps": 24
+  },
+  "financial_kpis": {
+    "gross_sales_usd": 1480438365.0,
+    "returns_deductions_usd": 2772950.45,
+    "net_recognized_sales_usd": 1245009425.53,
+    "cogs_usd": 219723424.0,
+    "gross_margin_usd": 1025286001.53,
+    "gtn_realization_pct": 84.1,
+    "gross_margin_pct": 82.35,
+    "avg_transaction_value_usd": 43684.54
+  },
+  "product_contributions": {
+    "AmphetaDex": 292970770.67,
+    "OlanzRx": 193594260.96,
+    "DexMethyl": 161375942.18,
+    "QuetiapMax": 152809728.21,
+    "ImmunoPax": 119976569.54,
+    "OncoShield": 114285175.38,
+    "EscitaloPro": 93861836.72,
+    "AlprazPlus": 79680462.72,
+    "RheumaCure": 36454679.15
+  },
+  "geographic_contributions": {
+    "United States": 551603152.03,
+    "Germany": 200192500.1,
+    "United Kingdom": 157017272.39,
+    "France": 137377780.38,
+    "Japan": 122721033.17,
+    "Canada": 76097687.46
+  },
+  "channel_contributions": {
+    "Wholesale Distributor": 501847937.09,
+    "Hospital Direct Tender": 370804478.29,
+    "Retail Pharmacy Chain": 261708802.51,
+    "Specialty Mail Order": 110648207.64
+  },
+  "therapeutic_area_contributions": {
+    "CNS / Psychiatry": 974293001.46,
+    "Oncology": 234261744.92,
+    "Immunology": 36454679.15
+  }
+}

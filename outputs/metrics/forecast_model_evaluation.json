@@ -1,0 +1,22 @@
+{
+  "Baseline_Naive_Persistence": {
+    "MAE_usd": 5382979.0,
+    "RMSE_usd": 7107358.72,
+    "MAPE_pct": 11.85
+  },
+  "Baseline_6Month_Moving_Average": {
+    "MAE_usd": 5467871.91,
+    "RMSE_usd": 7445578.77,
+    "MAPE_pct": 11.92
+  },
+  "Holt_Winters_Exponential_Smoothing": {
+    "MAE_usd": 5097148.14,
+    "RMSE_usd": 6163093.16,
+    "MAPE_pct": 11.55
+  },
+  "SARIMAX_1_1_1": {
+    "MAE_usd": 5339027.28,
+    "RMSE_usd": 6853154.05,
+    "MAPE_pct": 11.86
+  }
+}

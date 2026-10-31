@@ -1,0 +1,6 @@
+rfm_segment,account_count,total_revenue_usd,mean_revenue_usd,mean_orders,mean_recency_days,revenue_share_pct
+Tier 1: Strategic Key Account (Champion),37,458738454.3,12398336.6,276.76,1.19,36.76
+Tier 2: Loyal Growth Account,20,198139240.82,9906962.04,223.25,1.45,15.88
+Tier 3: At-Risk High-Value Account,18,211329033.52,11740501.86,253.94,7.61,16.94
+Tier 4: Promising Developing Account,12,98303231.88,8191935.99,186.33,1.92,7.88
+Tier 5: Low-Engagement Account,33,281272415.46,8523406.53,196.33,10.27,22.54

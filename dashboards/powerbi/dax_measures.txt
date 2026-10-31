@@ -1,0 +1,122 @@
+/* ====================================================================
+   POWER BI DAX MEASURES LIBRARY: PHARMACEUTICAL COMMERCIAL ANALYTICS
+   Table Target: fact_sales
+   ==================================================================== */
+
+// --- 1. CORE FINANCIAL MEASURES ---
+
+Total Transactions = 
+DISTINCTCOUNT(fact_sales[transaction_id])
+
+Total Units Ordered = 
+SUM(fact_sales[units_ordered])
+
+Total Units Returned = 
+SUM(fact_sales[units_returned])
+
+Total Net Units = 
+SUM(fact_sales[net_units])
+
+Gross Sales = 
+SUM(fact_sales[gross_sales_usd])
+
+Total Returns = 
+SUM(fact_sales[return_value_usd])
+
+Net Sales = 
+SUM(fact_sales[net_sales_usd])
+
+Total COGS = 
+SUM(fact_sales[cogs_usd])
+
+Gross Margin = 
+[Net Sales] - [Total COGS]
+
+Gross Margin % = 
+DIVIDE([Gross Margin], [Net Sales], 0)
+
+Gross to Net Realization % = 
+DIVIDE([Net Sales], [Gross Sales], 0)
+
+Average Order Value (AOV) = 
+DIVIDE([Net Sales], [Total Transactions], 0)
+
+Return Rate % = 
+DIVIDE([Total Units Returned], [Total Units Ordered], 0)
+
+
+// --- 2. TIME INTELLIGENCE MEASURES ---
+
+Net Sales Prior Month (MoM) = 
+CALCULATE(
+    [Net Sales],
+    DATEADD(dim_date[full_date], -1, MONTH)
+)
+
+MoM Sales Growth % = 
+DIVIDE([Net Sales] - [Net Sales Prior Month (MoM)], [Net Sales Prior Month (MoM)], 0)
+
+Net Sales Prior Year (YoY) = 
+CALCULATE(
+    [Net Sales],
+    SAMEPERIODLASTYEAR(dim_date[full_date])
+)
+
+YoY Sales Growth % = 
+DIVIDE([Net Sales] - [Net Sales Prior Year (YoY)], [Net Sales Prior Year (YoY)], 0)
+
+YTD Net Sales = 
+TOTALYTD([Net Sales], dim_date[full_date])
+
+
+// --- 3. COMMON-PERIOD & GEOGRAPHY NORMALIZATION ---
+
+Net Sales FY2025 Common Period = 
+CALCULATE(
+    [Net Sales],
+    dim_date[year] = 2025
+)
+
+Normalized Monthly Revenue Velocity = 
+DIVIDE(
+    [Net Sales],
+    SELECTEDVALUE(dim_geography[coverage_months], 36),
+    0
+)
+
+
+// --- 4. SALES FORCE EFFECTIVENESS (SFE) ---
+
+Active Sales Rep Count = 
+DISTINCTCOUNT(fact_sales[sales_rep_key])
+
+Revenue Per Sales Rep = 
+DIVIDE([Net Sales], [Active Sales Rep Count], 0)
+
+Units Sold Per Rep = 
+DIVIDE([Total Net Units], [Active Sales Rep Count], 0)
+
+
+// --- 5. ABC / PARETO CUMULATIVE DAX ---
+
+Product Revenue Cumulative % = 
+VAR CurrentProductSales = [Net Sales]
+VAR TotalPortfolioSales = CALCULATE([Net Sales], ALLSELECTED(dim_product))
+VAR CumulativeSales = 
+    CALCULATE(
+        [Net Sales],
+        FILTER(
+            ALLSELECTED(dim_product),
+            [Net Sales] >= CurrentProductSales
+        )
+    )
+RETURN
+    DIVIDE(CumulativeSales, TotalPortfolioSales, 0)
+
+Product Pareto Category = 
+SWITCH(
+    TRUE(),
+    [Product Revenue Cumulative %] <= 0.80, "Class A (Top 80%)",
+    [Product Revenue Cumulative %] <= 0.95, "Class B (Next 15%)",
+    "Class C (Tail 5%)"
+)
