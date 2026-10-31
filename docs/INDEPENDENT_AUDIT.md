@@ -27,7 +27,25 @@ All documentation has been updated to reflect the exact, unadjusted empirical fa
 ### 2.1 Entity Counts & Dimensions
 - **Dataset Nature:** Explicitly **synthetic, transaction-level commercial distribution data** generated via `src/generate_commercial_data.py` (fixed seed `42` for exact reproducibility). It is **not** audited secondary audit data (IQVIA MIDAS / Symphony Health) or official government claims data.
 - **Total Ingested Records:** 28,525 raw transactions.
-- **Total Analytical Records:** 28,500 cleansed rows (25 deliberate duplicates removed).
+- **Financial Reconciliation Status Distribution (`financial_reconciliation_status`):**
+  - `PASS`: 28,500 records (99.91% of ingested; 100.00% of analytical fact records require no financial adjustment)
+  - `CORRECTED`: 0 records (all 28,500 retained transactions reconcile to the penny)
+  - `REJECTED`: 25 records (0.09%, dropped due to duplicate transaction IDs or invalid pricing)
+- **Data Quality Status Distribution (`data_quality_status`):**
+  - `PASS`: 28,465 records (99.79%)
+  - `STANDARDIZED`: 35 records (0.12%, 20 customer names imputed and 15 country casings standardized)
+  - `REJECTED`: 25 records (0.09%)
+- **Overall Record Status (`reconciliation_status`, retained for backward compatibility):**
+  - `PASS`: 28,465 records (99.79%)
+  - `CORRECTED`: 35 records (0.12%, categorical data quality standardizations)
+  - `REJECTED`: 25 records (0.09%)
+- **COGS Provenance (`cogs_source_type`):**
+  - `SOURCE`: 28,500 records (100.00% of fact records retain source COGS; never overwritten)
+  - `ESTIMATED`: 0 records (configurable 15% WAC fallback assumption available for unpopulated feeds)
+- **Business Anomaly Flags (`anomaly_flag`):**
+  - `NONE`: 28,521 records
+  - `DEEP_DISCOUNT_OUTLIER`: 4 records (all retain `financial_reconciliation_status = 'PASS'`)
+- **Total Analytical Records:** 28,500 cleansed rows loaded into `fact_sales`.
 - **Date Range:** `2023-01-01` to `2025-12-31` (1,096 calendar days, 36 months).
 - **Entity Dimensions:**
   - `dim_product`: 9 pharmaceutical assets (6 CNS, 2 Oncology, 1 Immunology).

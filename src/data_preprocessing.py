@@ -92,41 +92,55 @@ A validation protocol was executed over the commercial transactional records. Th
 
 ---
 
-## 2. Row-Level Reconciliation Status Summary
+## 2. Row-Level Reconciliation Status & Business Anomaly Summary
 
-| Reconciliation Status | Record Count | % of Ingested | Description & Criteria |
-| :--- | :--- | :--- | :--- |
-| **PASS** | **{audit['status_pass_count']:,}** | **{audit['status_pass_count']/audit['total_records_ingested']*100:.2f}%** | 100% mathematically consistent; zero anomalies or discrepancies. |
-| **CORRECTED** | **{audit['status_corrected_count']:,}** | **{audit['status_corrected_count']/audit['total_records_ingested']*100:.2f}%** | Valid transactions with formatting (country casing) or imputed customer names reconciled. |
-| **FLAGGED** | **{audit['status_flagged_count']:,}** | **{audit['status_flagged_count']/audit['total_records_ingested']*100:.2f}%** | Retained in analytical core, but flagged for business audit (high-value return or discount outlier). |
-| **REJECTED** | **{audit['status_rejected_count']:,}** | **{audit['status_rejected_count']/audit['total_records_ingested']*100:.2f}%** | Dropped due to duplicate transaction ID, unparseable date, zero quantity, or invalid pricing. |
-| **Total Ingested** | **{audit['total_records_ingested']:,}** | **100.00%** | Raw ERP billing transactions ingested. |
-| **Clean Retained** | **{audit['clean_records_retained']:,}** | **{audit['clean_records_retained']/audit['total_records_ingested']*100:.2f}%** | Loaded into Star Schema OLAP database (`fact_sales`). |
+| Metric Dimension | Classification | Record Count | % of Ingested | Description & Criteria |
+| :--- | :--- | :--- | :--- | :--- |
+| **Financial Status** | **PASS** | **{audit['financial_status_pass_count']:,}** | **{audit['financial_status_pass_count']/audit['total_records_ingested']*100:.2f}%** | 100% mathematically consistent without financial adjustment. |
+| **Financial Status** | **CORRECTED** | **{audit['financial_status_corrected_count']:,}** | **{audit['financial_status_corrected_count']/audit['total_records_ingested']*100:.2f}%** | Financial amounts adjusted to enforce gross-to-net waterfall identity. |
+| **Financial Status** | **REJECTED** | **{audit['financial_status_rejected_count']:,}** | **{audit['financial_status_rejected_count']/audit['total_records_ingested']*100:.2f}%** | Fatal financial invalidity (negative price, impossible discount, duplicates). |
+| **Data Quality Status** | **PASS** | **{audit['data_quality_pass_count']:,}** | **{audit['data_quality_pass_count']/audit['total_records_ingested']*100:.2f}%** | Clean entity attributes requiring no structural transformation. |
+| **Data Quality Status** | **STANDARDIZED** | **{audit['data_quality_standardized_count']:,}** | **{audit['data_quality_standardized_count']/audit['total_records_ingested']*100:.2f}%** | Entity casing cleaned (15) or missing customer name imputed (20). |
+| **Data Quality Status** | **REJECTED** | **{audit['data_quality_rejected_count']:,}** | **{audit['data_quality_rejected_count']/audit['total_records_ingested']*100:.2f}%** | Malformed dates, blank IDs, or duplicate records rejected upfront. |
+| **Overall Record Status** | **PASS** | **{audit['status_pass_count']:,}** | **{audit['status_pass_count']/audit['total_records_ingested']*100:.2f}%** | Retained unmodified across both financial and categorical checks. |
+| **Overall Record Status** | **CORRECTED** | **{audit['status_corrected_count']:,}** | **{audit['status_corrected_count']/audit['total_records_ingested']*100:.2f}%** | Categorically standardized or financially reconciled records. |
+| **Overall Record Status** | **REJECTED** | **{audit['status_rejected_count']:,}** | **{audit['status_rejected_count']/audit['total_records_ingested']*100:.2f}%** | Dropped due to duplicate transaction ID, unparseable date, or invalid pricing. |
+| **COGS Provenance** | **SOURCE** | **{audit['cogs_source_count']:,}** | **{audit['cogs_source_count']/audit['clean_records_retained']*100:.2f}%** | COGS retained directly from ingested source data. |
+| **COGS Provenance** | **ESTIMATED** | **{audit['cogs_estimated_count']:,}** | **{audit['cogs_estimated_count']/audit['clean_records_retained']*100:.2f}%** | Estimated via configurable fallback assumption (15% WAC). |
+| **Business Anomaly Flags** | **FLAGGED** | **{audit['status_flagged_count']:,}** | **{audit['status_flagged_count']/audit['total_records_ingested']*100:.2f}%** | Retained in analytical core, tagged with business anomaly flag (deep discount outlier). |
+| **Total Ingested** | **Raw Records** | **{audit['total_records_ingested']:,}** | **100.00%** | Raw ERP billing transactions ingested. |
+| **Clean Retained** | **Fact Table** | **{audit['clean_records_retained']:,}** | **{audit['clean_records_retained']/audit['total_records_ingested']*100:.2f}%** | Loaded into Star Schema OLAP database (`fact_sales`). |
 
 ---
 
-## 3. Independent Financial Metric Validation
+## 3. Independent Financial Metric Validation & Waterfall
 
-All four commercial financial dimensions were validated independently against unit-level transaction parameters:
+All commercial financial dimensions were validated independently against unit-level transaction parameters:
 
 | Commercial Financial Metric | Expected Formulation | Anomalies Identified | Reconciliation Action |
 | :--- | :--- | :--- | :--- |
 | **Gross Invoiced Sales** | `Units Ordered × Unit WAC Price` (or $0.00 for returns) | {audit['independent_gross_sales_corrected']} records | Verified & reconciled against WAC price book. |
+| **Contract Discounts** | `Units Ordered × (WAC - Net Price)` (or $0.00 for returns) | {audit['independent_discount_corrected']} records | Reconciled in gross-to-net waterfall. |
 | **Customer Returns** | `Units Returned × Unit Net Price` (or $0.00 for standard sales) | {audit['independent_returns_corrected']} records | Verified & reconciled against contract net price. |
-| **Net Recognized Revenue** | `Gross Sales - Returns - Contract Discounts` | {audit['independent_net_sales_corrected']} records | Verified & reconciled against transaction terms. |
-| **Gross Margin** | `Net Sales - Cost of Goods Sold (COGS)` | {audit['independent_gross_margin_corrected']} records | Verified & reconciled against formulation cost basis. |
+| **Net Recognized Revenue** | `Gross Sales - Contract Discounts - Returns` | {audit['independent_net_sales_corrected']} records | Waterfall identity holds to the exact cent. |
+| **Cost of Goods Sold (COGS)** | Retained from source dataset (`cogs_usd_original`); configurable fallback proxy | {audit['cogs_fallback_applied_count']} fallback rows | Preserved from source dataset; returns credit inventory. |
+| **Gross Margin** | `Net Sales - Cost of Goods Sold (COGS)` | {audit['independent_gross_margin_corrected']} records | Verified independently as `expected_net - expected_cogs`. |
 
 ---
 
 ## 4. Financial Integrity Audit Totals
 
 - **Gross Sales Realized (USD):** ${gross_total:,.2f}
+- **Contract Discounts & Rebates (USD):** ${audit['total_verified_contract_discount_usd']:,.2f}
 - **Customer Returns / Reversals (USD):** ${returns_total:,.2f}
 - **Net Recognized Revenue (USD):** ${net_total:,.2f}
 - **Gross-to-Net Realization Rate:** {gtn_rate:.2f}%
 - **Total Net Units Distributed:** {net_units_total:,} units across {n_markets} global markets.
 
-> **Synthetic Data Disclosure:** All financial figures are derived from reproducible synthetic data generated via `src/generate_commercial_data.py` (seed 42). They do not represent actual pharmaceutical manufacturer revenue or verified market share.
+> **Synthetic Data & Accounting Disclosures:**
+> 1. All financial figures are derived from reproducible synthetic data generated via `src/generate_commercial_data.py` (seed 42). They do not represent actual pharmaceutical manufacturer revenue or verified market share.
+> 2. **COGS Accounting:** Cost of Goods Sold is retained from source records. In unpopulated datasets, a configurable synthetic fallback (defaulting to 15% of WAC) estimates COGS, crediting returns.
+> 3. **Reverse Logistics:** Returns credit net invoice price, and returned inventory credits COGS under the operational assumption of product restocking.
 """
     os.makedirs(os.path.dirname(QUALITY_REPORT_MD), exist_ok=True)
     with open(QUALITY_REPORT_MD, "w") as f:
@@ -271,8 +285,9 @@ def build_sqlite_star_schema(df: pd.DataFrame):
         "customer_key", "distributor_key", "sales_rep_key", "channel_key",
         "units_ordered", "units_returned", "net_units",
         "unit_wac_price_usd", "contract_discount_pct", "unit_net_price_usd",
-        "gross_sales_usd", "return_value_usd", "net_sales_usd",
-        "cogs_usd", "gross_margin_usd", "reconciliation_status", "return_reason"
+        "gross_sales_usd", "contract_discount_usd", "return_value_usd", "net_sales_usd",
+        "cogs_usd", "gross_margin_usd", "reconciliation_status", "financial_reconciliation_status",
+        "data_quality_status", "anomaly_flag", "cogs_source_type", "return_reason"
     ]].reset_index(drop=True)
     fact_sales["sales_fact_id"] = range(1, len(fact_sales) + 1)
 

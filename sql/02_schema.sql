@@ -91,12 +91,17 @@ CREATE TABLE IF NOT EXISTS fact_sales (
     contract_discount_pct   NUMERIC(5,2) NOT NULL,
     unit_net_price_usd      NUMERIC(10,2) NOT NULL,
     gross_sales_usd         NUMERIC(12,2) NOT NULL DEFAULT 0,
+    contract_discount_usd   NUMERIC(12,2) NOT NULL DEFAULT 0,
     return_value_usd        NUMERIC(12,2) NOT NULL DEFAULT 0,
     net_sales_usd           NUMERIC(12,2) NOT NULL,
     cogs_usd                NUMERIC(12,2) NOT NULL,
-    gross_margin_usd        NUMERIC(12,2) NOT NULL,
-    reconciliation_status   VARCHAR(20) NOT NULL DEFAULT 'PASS',
-    return_reason           VARCHAR(100)
+    gross_margin_usd                NUMERIC(12,2) NOT NULL,
+    reconciliation_status           VARCHAR(20) NOT NULL DEFAULT 'PASS',
+    financial_reconciliation_status VARCHAR(20) NOT NULL DEFAULT 'PASS',
+    data_quality_status             VARCHAR(20) NOT NULL DEFAULT 'PASS',
+    anomaly_flag                    VARCHAR(50) NOT NULL DEFAULT 'NONE',
+    cogs_source_type                VARCHAR(20) NOT NULL DEFAULT 'SOURCE',
+    return_reason                   VARCHAR(100)
 );
 
 -- High Performance Indexes
